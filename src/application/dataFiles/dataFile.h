@@ -31,7 +31,8 @@ class DataFile
 public:
 	// Constructor
 	DataFile(const wxString& _fileName, wxWindow *_parent = NULL,
-		wxArrayInt *selections = NULL, bool *removeExisting = NULL);
+		wxArrayInt *selections = NULL, bool *removeExisting = NULL,
+		unsigned int *xDataColumn = NULL);
 
 	// Destructor
 	virtual ~DataFile();
@@ -65,6 +66,7 @@ protected:
 	bool *defaultRemoveExisting;
 	wxArrayInt userSelections;
 	wxArrayInt *defaultSelections;
+	unsigned int xDataColumn, *defaultXDataColumn;
 
 	wxString DetermineBestDelimiter(void) const;
 

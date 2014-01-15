@@ -35,6 +35,7 @@
 //		pos		= const wxPoint& specifying on-screen position
 //		defaultChoices	= wxArrayInt*, default choices
 //		removeExisting	= bool*, default value of remove existing curves checkbox
+//		xDataColumn		= unsigned int*, default value of x-data column text box
 //
 // Output Arguments:
 //		None
@@ -43,14 +44,14 @@
 //		None
 //
 //==========================================================================
-MultiChoiceDialog::MultiChoiceDialog(wxWindow* parent, const wxString& message, const wxString& caption,
-		const wxArrayString& choices, long style, const wxPoint& pos,
-		wxArrayInt *defaultChoices, bool *removeExisting)
-		: wxDialog(parent, wxID_ANY, caption, pos, wxDefaultSize, style)
+MultiChoiceDialog::MultiChoiceDialog(wxWindow* parent, const wxString& message,
+	const wxString& caption, const wxArrayString& choices, long style,
+	const wxPoint& pos, wxArrayInt *defaultChoices, bool *removeExisting,
+	unsigned int *xDataColumn) : wxDialog(parent, wxID_ANY, caption, pos,
+	wxDefaultSize, style)
 {
 	CreateControls(message, choices);
-
-	ApplyDefaults(defaultChoices, removeExisting);
+	ApplyDefaults(defaultChoices, removeExisting, xDataColumn);
 }
 
 //==========================================================================
@@ -71,6 +72,7 @@ MultiChoiceDialog::MultiChoiceDialog(wxWindow* parent, const wxString& message, 
 //==========================================================================
 BEGIN_EVENT_TABLE(MultiChoiceDialog, wxDialog)
 	EVT_BUTTON(idSelectAll,	MultiChoiceDialog::OnSelectAllButton)
+	EVT_TEXT(idXDataColumn,	MultiChoiceDialog::OnXDataColumnChange)
 END_EVENT_TABLE()
 
 //==========================================================================
@@ -134,8 +136,15 @@ void MultiChoiceDialog::CreateControls(const wxString& message, const wxArrayStr
 	mainSizer->Add(choiceListBox, 1, wxALL | wxEXPAND, 10);
 
 	removeCheckBox = new wxCheckBox(this, wxID_ANY, _T("Remove Existing Curves"));
-	mainSizer->Add(removeCheckBox, 0, wxALL & ~wxTOP, 10);
+	mainSizer->Add(removeCheckBox, 0, wxLEFT | wxRIGHT, 10);
 	removeCheckBox->SetValue(true);
+
+	wxSizer *dataColumnSizer = new wxBoxSizer(wxHORIZONTAL);
+	wxStaticText *dataColumnLabel = new wxStaticText(this, wxID_ANY, _T("X-Data Column"));
+	xDataColumnTextCtrl = new wxTextCtrl(this, idXDataColumn, _T("1"));
+	dataColumnSizer->Add(dataColumnLabel, 0, wxALL, 5);
+	dataColumnSizer->Add(xDataColumnTextCtrl, 0, wxALL, 5);
+	mainSizer->Add(dataColumnSizer, 0, wxLEFT | wxRIGHT | wxTOP, 5);
 
 	mainSizer->Add(new wxStaticLine(this), wxSizerFlags().Expand().DoubleBorder(wxLEFT | wxRIGHT));
 	mainSizer->Add(CreateButtons(), 0, wxALL | wxEXPAND, 5);
@@ -192,7 +201,7 @@ wxSizer* MultiChoiceDialog::CreateButtons(void)
 //		None
 //
 // Return Value:
-//		wxArrayInt containing a list of checked items
+//		None
 //
 //==========================================================================
 void MultiChoiceDialog::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
@@ -209,6 +218,28 @@ void MultiChoiceDialog::OnSelectAllButton(wxCommandEvent& WXUNUSED(event))
 	}
 
 	SetAllChoices(!allSelected);
+}
+
+//==========================================================================
+// Class:			MultiChoiceDialog
+// Function:		OnXDataColumnChange
+//
+// Description:		Event handler for X-Data Column text box change.
+//
+// Input Arguments:
+//		event	= wxCommandEvent& (unused)
+//
+// Output Arguments:
+//		None
+//
+// Return Value:
+//		None
+//
+//==========================================================================
+void MultiChoiceDialog::OnXDataColumnChange(wxCommandEvent& WXUNUSED(event))
+{
+	// TODO:  Implement
+	// Add/remove columns from the selection list box based on the value here
 }
 
 //==========================================================================
@@ -257,6 +288,34 @@ bool MultiChoiceDialog::RemoveExistingCurves(void) const
 
 //==========================================================================
 // Class:			MultiChoiceDialog
+// Function:		XDataColumn
+//
+// Description:		Returns the value of the "X-Data Column" text box.
+//
+// Input Arguments:
+//		None
+//
+// Output Arguments:
+//		None
+//
+// Return Value:
+//		unsigned int
+//
+//==========================================================================
+unsigned int MultiChoiceDialog::XDataColumn(void) const
+{
+	unsigned long column;
+	if (!xDataColumnTextCtrl->GetValue().ToULong(&column))
+		return 0;
+
+	if (column > choiceListBox->GetCount() + 1)
+		return 0;
+
+	return column;
+}
+
+//==========================================================================
+// Class:			MultiChoiceDialog
 // Function:		ApplyDefaults
 //
 // Description:		Applies the specified defaults to the available user selections.
@@ -264,6 +323,7 @@ bool MultiChoiceDialog::RemoveExistingCurves(void) const
 // Input Arguments:
 //		defaultChoices	= wxArrayInt*
 //		removeExisting	= bool*
+//		xDataColumn		= unsigned int*
 //
 // Output Arguments:
 //		None
@@ -272,7 +332,8 @@ bool MultiChoiceDialog::RemoveExistingCurves(void) const
 //		None
 //
 //==========================================================================
-void MultiChoiceDialog::ApplyDefaults(wxArrayInt *defaultChoices, bool *removeExisting)
+void MultiChoiceDialog::ApplyDefaults(wxArrayInt *defaultChoices,
+	bool *removeExisting, unsigned int *xDataColumn)
 {
 	if (defaultChoices)
 	{
@@ -286,4 +347,7 @@ void MultiChoiceDialog::ApplyDefaults(wxArrayInt *defaultChoices, bool *removeEx
 
 	if (removeExisting)
 		removeCheckBox->SetValue(*removeExisting);
+
+	if (xDataColumn)
+		xDataColumnTextCtrl->SetValue(wxString::Format("%u", *xDataColumn));
 }

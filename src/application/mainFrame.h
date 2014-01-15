@@ -293,6 +293,7 @@ private:
 	wxString lastFileLoaded;
 	wxArrayInt lastUserSelections;
 	bool lastUserRemovedExisting;
+	unsigned int lastUserXDataColumn;
 
 	Dataset2D GetXZoomedDataset(const Dataset2D &fullData) const;
 

@@ -919,6 +919,8 @@ bool MainFrame::LoadFile(const wxString &pathAndFileName, bool useLastPreference
 		else
 			lastUserRemovedExisting = false;
 
+		// TODO:  Handle varying x-data column number
+
 		unsigned int i;
 		for (i = 0; i < file->GetDataCount(); i++)
 			AddCurve(file->GetDataset(i), file->GetDescription(i + 1));
@@ -3440,25 +3442,30 @@ DataFile* MainFrame::GetDataFile(const wxString &fileName, bool useLastUserPrefe
 	if (BaumullerFile::IsType(fileName))
 		return new BaumullerFile(fileName, this,
 		useLastUserPreferences ? &lastUserSelections : NULL,
-		useLastUserPreferences ? &lastUserRemovedExisting : NULL);
+		useLastUserPreferences ? &lastUserRemovedExisting : NULL,
+		useLastUserPreferences ? &lastUserXDataColumn : NULL);
 	else if (KollmorgenFile::IsType(fileName))
 		return new KollmorgenFile(fileName, this,
 		useLastUserPreferences ? &lastUserSelections : NULL,
-		useLastUserPreferences ? &lastUserRemovedExisting : NULL);
+		useLastUserPreferences ? &lastUserRemovedExisting : NULL,
+		useLastUserPreferences ? &lastUserXDataColumn : NULL);
 	else if (CustomFile::IsType(fileName))
 		return new CustomFile(fileName, this,
 		useLastUserPreferences ? &lastUserSelections : NULL,
-		useLastUserPreferences ? &lastUserRemovedExisting : NULL);
+		useLastUserPreferences ? &lastUserRemovedExisting : NULL,
+		useLastUserPreferences ? &lastUserXDataColumn : NULL);
 	else if (CustomXMLFile::IsType(fileName))
 		return new CustomXMLFile(fileName, this,
 		useLastUserPreferences ? &lastUserSelections : NULL,
-		useLastUserPreferences ? &lastUserRemovedExisting : NULL);
+		useLastUserPreferences ? &lastUserRemovedExisting : NULL,
+		useLastUserPreferences ? &lastUserXDataColumn : NULL);
 
 	// Don't even check - if we can't open it with any other types,
 	// always try to open it with a generic type
 	return new GenericFile(fileName, this,
 		useLastUserPreferences ? &lastUserSelections : NULL,
-		useLastUserPreferences ? &lastUserRemovedExisting : NULL);
+		useLastUserPreferences ? &lastUserRemovedExisting : NULL,
+		useLastUserPreferences ? &lastUserXDataColumn : NULL);
 }
 
 //==========================================================================

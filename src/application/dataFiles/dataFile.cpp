@@ -30,6 +30,7 @@
 //		_parent			= wxWindow* parent for centering curve choice dialog
 //		selections		= wxArrayInt*, optional, default selections
 //		removeExisting	= bool*, optional, default value of checkbox
+//		xDataColumn		= unsigned int*,
 //
 // Output Arguments:
 //		None
@@ -39,7 +40,7 @@
 //
 //==========================================================================
 DataFile::DataFile(const wxString& _fileName, wxWindow *_parent,
-		wxArrayInt *selections, bool *removeExisting)
+		wxArrayInt *selections, bool *removeExisting, unsigned int *xDataColumn)
 {
 	fileName = _fileName;
 	parent = _parent;
@@ -49,9 +50,11 @@ DataFile::DataFile(const wxString& _fileName, wxWindow *_parent,
 	ignoreConsecutiveDelimiters = true;
 	timeIsFormatted = false;
 	removeExistingCurves = true;
+	this->xDataColumn = 1;
 
 	defaultRemoveExisting = removeExisting;
 	defaultSelections = selections;
+	defaultXDataColumn = xDataColumn;
 }
 
 //==========================================================================
@@ -153,6 +156,8 @@ wxString DataFile::DetermineBestDelimiter(void) const
 			delimitedLine = ParseLineIntoColumns(nextLine, delimiterList[i]);
 			if (delimitedLine.size() > 1)
 			{
+				// TODO:  If one column in the file is text, it would be nice to be able to
+				// ignore it and just plot the rest of the data
 				if (ListIsNumeric(delimitedLine)
 					&& columnCount == delimitedLine.size())// Number of number columns == number of text columns
 				{
@@ -414,7 +419,7 @@ bool DataFile::ProcessFile(void)
 {
 	MultiChoiceDialog dialog(parent, _T("Select data to plot:"), _T("Select Data"),
 		wxArrayString(descriptions.begin() + 1, descriptions.end()), wxCHOICEDLG_STYLE,
-		wxDefaultPosition, defaultSelections, defaultRemoveExisting);
+		wxDefaultPosition, defaultSelections, defaultRemoveExisting, defaultXDataColumn);
 	if (dialog.ShowModal() == wxID_CANCEL)
 		return false;
 

@@ -28,8 +28,10 @@ class CustomXMLFile : public DataFile
 public:
 	// Constructor
 	CustomXMLFile(const wxString& _fileName, wxWindow *_parent = NULL,
-		wxArrayInt *selections = NULL, bool *removeExisting = NULL)
-		: DataFile(_fileName, _parent, selections, removeExisting), fileFormat(_fileName) {};
+		wxArrayInt *selections = NULL, bool *removeExisting = NULL,
+		unsigned int *xDataColumn = NULL)
+		: DataFile(_fileName, _parent, selections, removeExisting,
+		xDataColumn), fileFormat(_fileName) {};
 
 	static bool IsType(const wxString &_fileName);
 

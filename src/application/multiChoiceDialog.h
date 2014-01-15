@@ -24,13 +24,16 @@ class MultiChoiceDialog : public wxDialog
 {
 public:
 	// Constructor
-	MultiChoiceDialog(wxWindow* parent, const wxString& message, const wxString& caption,
-		const wxArrayString& choices, long style = wxCHOICEDLG_STYLE, const wxPoint& pos = wxDefaultPosition,
-		wxArrayInt *defaultChoices = NULL, bool *removeExisting = NULL);
+	MultiChoiceDialog(wxWindow* parent, const wxString& message,
+		const wxString& caption, const wxArrayString& choices,
+		long style = wxCHOICEDLG_STYLE, const wxPoint& pos = wxDefaultPosition,
+		wxArrayInt *defaultChoices = NULL, bool *removeExisting = NULL,
+		unsigned int *xDataColumn = NULL);
 
 	virtual  wxArrayInt GetSelections(void) const;
 
 	bool RemoveExistingCurves(void) const;
+	unsigned int XDataColumn(void) const;
 
 private:
 	void CreateControls(const wxString& message, const wxArrayString& choices);
@@ -38,19 +41,23 @@ private:
 
 	wxCheckListBox *choiceListBox;
 	wxCheckBox *removeCheckBox;
+	wxTextCtrl *xDataColumnTextCtrl;
 
 	// Object IDs
 	enum
 	{
-		idSelectAll = wxID_HIGHEST + 300
+		idSelectAll = wxID_HIGHEST + 300,
+		idXDataColumn
 	};
 
 	// Event handlers
 	void OnSelectAllButton(wxCommandEvent &event);
+	void OnXDataColumnChange(wxCommandEvent &event);
 
 	void SetAllChoices(const bool &selected);
 
-	void ApplyDefaults(wxArrayInt *defaultChoices, bool *removeExisting);
+	void ApplyDefaults(wxArrayInt *defaultChoices, bool *removeExisting,
+		unsigned int *xDataColumn);
 
 	DECLARE_EVENT_TABLE();
 };
