@@ -13,8 +13,10 @@
 // Description:  Handles user-specified mathematical operations on datasets.
 // History:
 
-// wxWidgets headers
-#include <wx/wx.h>
+// Standard C++ headers
+#include <locale>
+#include <codecvt>
+#include <sstream>
 
 // Local headers
 #include "utilities/math/expressionTree.h"
@@ -30,7 +32,7 @@
 // Description:		Constructor for ExpressionTree class.
 //
 // Input Arguments:
-//		_list		= const ManagedList<const Dataset2D>* reference to the
+//		list		= const ManagedList<const Dataset2D>* reference to the
 //					  other datasets which may be required to complete the calculation
 //
 // Output Arguments:
@@ -40,8 +42,46 @@
 //		None
 //
 //==========================================================================
-ExpressionTree::ExpressionTree(const ManagedList<const Dataset2D> *_list) : list(_list)
+ExpressionTree::ExpressionTree(const ManagedList<const Dataset2D> *list) : list(list)
 {
+	// TODO:  Add int, ddt, fft, frf, bit <- of these, only bit can be applied to a single value...
+	//parser.DefineFun();
+
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	wxString nameChars(parser.ValidNameChars());
+	nameChars.Append(_T("[]"));
+	parser.DefineNameChars(
+#ifdef _UNICODE
+		converter.from_bytes(nameChars.mb_str()).c_str()
+#else
+		nameChars.mb_str()
+#endif
+		);
+
+	if (list)
+	{
+		unsigned int i;
+		for (i = 0; i <= list->GetCount(); i++)
+		{
+			setValues.Add(new double);
+
+			try
+			{
+				wxString var = wxString::Format(_T("[%i]"), i);
+				parser.DefineVar(
+#ifdef _UNICODE
+					converter.from_bytes(var.mb_str())
+#else
+					var.mb_str()
+#endif
+				, setValues[i]);
+			}
+			catch (mu::Parser::exception_type &ex)
+			{
+				errorString = ex.GetMsg();
+			}
+		}
+	}
 }
 
 //==========================================================================
@@ -82,20 +122,59 @@ const unsigned int ExpressionTree::printfPrecision = 15;
 //==========================================================================
 wxString ExpressionTree::Solve(wxString expression, Dataset2D &solvedData, const double &_xAxisFactor)
 {
+	if (!errorString.IsEmpty())// TODO:  This is kind of a hack
+	{
+		return _T("Failed to initialize parser:  ") + errorString;
+	}
+
 	xAxisFactor = _xAxisFactor;
 
-	if (!ParenthesesBalanced(expression))
-		return _T("Imbalanced parentheses!");
+	try
+	{
+		std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+		parser.SetExpr(
+#ifdef _UNICODE
+			converter.from_bytes(expression.mb_str())
+#else
+			expression.mb_str();
+#endif
+			);
+		mu::varmap_type variables = parser.GetUsedVar();
+		mu::varmap_type::const_iterator item;
+		Dataset2D refSet;
+		for (item = variables.begin(); item != variables.end(); item++)
+		{
+			if ((*item).first.front() == '[' && (*item).first.back() == ']')
+			{
+#ifdef _UNICODE
+				std::wistringstream ss;
+#else
+				std::istringstream ss;
+#endif
+				ss.str((*item).first.substr(1));
+				unsigned int j;
+				ss >> j;
+				refSet = GetSetFromList(j);
+				break;
+			}
+		}
 
-	wxString errorString;
-	errorString = ParseExpression(expression);
+		solvedData.Resize(refSet.GetNumberOfPoints());
 
-	if (!errorString.IsEmpty())
-		return errorString;
+		unsigned int i;
+		for (i = 0; i < refSet.GetNumberOfPoints(); i++)
+		{
+			UpdateSetValues(i);
+			*(solvedData.GetXPointer() + i) = refSet.GetXData(i);
+			*(solvedData.GetYPointer() + i) = parser.Eval();
+		}
+	}
+	catch (mu::Parser::exception_type &ex)
+	{
+		return ex.GetMsg();
+	}
 
-	errorString = EvaluateExpression(solvedData);
-
-	return errorString;
+	return _T("");
 }
 
 //==========================================================================
@@ -129,6 +208,34 @@ std::string ExpressionTree::Solve(std::string expression, std::string &solvedExp
 	errorString = EvaluateExpression(solvedExpression);
 
 	return errorString;
+}
+
+//==========================================================================
+// Class:			ExpressionTree
+// Function:		UpdateSetValues
+//
+// Description:		Updates the set values for the specified index.
+//
+// Input Arguments:
+//		i	= const unsigned int&
+//
+// Output Arguments:
+//		None
+//
+// Return Value:
+//		None
+//
+//==========================================================================
+void ExpressionTree::UpdateSetValues(const unsigned int &i)
+{
+	unsigned int j;
+	for (j = 0; j <= list->GetCount(); j++)
+	{
+		if (j == 0)
+			*setValues[j] = (*list)[0]->GetXData(i);
+		else
+			*setValues[j] = (*list)[j - 1]->GetYData(i);
+	}
 }
 
 //==========================================================================

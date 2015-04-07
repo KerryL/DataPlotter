@@ -28,11 +28,14 @@
 // wxWidgets headers
 #include <wx/wx.h>
 
+// muparser headers
+#include <muParser.h>
+
 class ExpressionTree
 {
 public:
 	// Constructor
-	ExpressionTree(const ManagedList<const Dataset2D> *_list = NULL);
+	ExpressionTree(const ManagedList<const Dataset2D> *list = NULL);
 
 	// Main solver method
 	wxString Solve(wxString expression, Dataset2D &solvedData, const double &_xAxisFactor);
@@ -44,6 +47,12 @@ public:
 private:
 	static const unsigned int printfPrecision;
 	const ManagedList<const Dataset2D> *list;
+
+	mu::Parser parser;
+	wxString errorString;
+
+	ManagedList<double> setValues;
+	void UpdateSetValues(const unsigned int &i);
 
 	double xAxisFactor;
 
