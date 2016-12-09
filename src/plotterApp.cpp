@@ -17,8 +17,8 @@
 #include <wx/wx.h>
 
 // Local headers
-#include "application/plotterApp.h"
-#include "application/mainFrame.h"
+#include "plotterApp.h"
+#include "mainFrame.h"
 
 // Implement the application (have wxWidgets set up the appropriate entry points, etc.)
 IMPLEMENT_APP(DataPlotterApp);

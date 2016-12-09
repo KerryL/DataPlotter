@@ -13,8 +13,8 @@
 // Description:  The application class.
 // History:
 
-#ifndef _PLOTTER_APP_H_
-#define _PLOTTER_APP_H_
+#ifndef PLOTTER_APP_H_
+#define PLOTTER_APP_H_
 
 // wxWidgets headers
 #include <wx/wx.h>
@@ -44,4 +44,4 @@ private:
 // Declare the application object (have wxWidgets create the wxGetApp() function)
 DECLARE_APP(DataPlotterApp);
 
-#endif// _PLOTTER_APP_H_
+#endif// PLOTTER_APP_H_

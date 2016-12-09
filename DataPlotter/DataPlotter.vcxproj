@@ -90,15 +90,15 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;__WXMSW__;__WXDEBUG__;WXUSINGDLL;GLEW_STATIC;_DATAPLOTTER_64_BIT_;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../src/;$(FREETYPE)\include\freetype2;$(WXWIN)\lib\vc_dll\mswud;$(WXWIN)\include;$(GLEW)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../src/;$(LIBPLOT2D)/include;$(FREETYPE)\include\freetype2;$(WXWIN)\lib\vc_dll\mswud;$(WXWIN)\include;$(GLEW)\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <DisableSpecificWarnings>4458;4456</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(WXWIN)\lib\vc_dll;$(GLEW)\lib\Release\Win32;$(FREETYPE)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wxbase31ud.lib;wxmsw31ud_adv.lib;wxbase31ud_xml.lib;wxmsw31ud_core.lib;wxmsw31ud_gl.lib;wxzlibd.lib;opengl32.lib;glew32s.lib;freetyped.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(LIBPLOT2D)/lib;$(WXWIN)\lib\vc_dll;$(GLEW)\lib\Release\Win32;$(FREETYPE)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wxbase31ud.lib;wxmsw31ud_adv.lib;wxbase31ud_xml.lib;wxmsw31ud_core.lib;wxmsw31ud_gl.lib;wxzlibd.lib;opengl32.lib;glew32s.lib;freetyped.lib;libplot2d_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(WXWIN)\include</AdditionalIncludeDirectories>
@@ -137,7 +137,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;__WXMSW__;_DATAPLOTTER_64_BIT_;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(FREETYPE)\include\freetype2;$(WXWIN)\lib\vc_lib\mswu;$(WXWIN)\include;$(GLEW)\include;../src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(LIBPLOT2D)/include;$(FREETYPE)\include\freetype2;$(WXWIN)\lib\vc_lib\mswu;$(WXWIN)\include;$(GLEW)\include;../src</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4458;4456</DisableSpecificWarnings>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -147,8 +147,8 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(GLEW)\lib\Release\Win32;$(WXWIN)\lib\vc_lib;$(FREETYPE)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wxbase31u.lib;wxmsw31u_adv.lib;wxbase31u_xml.lib;wxexpat.lib;wxmsw31u_core.lib;wxmsw31u_gl.lib;wxzlib.lib;wxpng.lib;wxtiff.lib;wxjpeg.lib;opengl32.lib;glew32s.lib;freetype.lib;comctl32.lib;rpcrt4.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(GLEW)\lib\Release\Win32;$(WXWIN)\lib\vc_lib;$(FREETYPE)\lib;$(LIBPLOT2D)/lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wxbase31u.lib;wxmsw31u_adv.lib;wxbase31u_xml.lib;wxexpat.lib;wxmsw31u_core.lib;wxmsw31u_gl.lib;wxzlib.lib;wxpng.lib;wxtiff.lib;wxjpeg.lib;opengl32.lib;glew32s.lib;freetype.lib;comctl32.lib;rpcrt4.lib;libPlot2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(WXWIN)\include</AdditionalIncludeDirectories>
@@ -209,102 +209,16 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="../src\application\createSignalDialog.h" />
-    <ClInclude Include="../src\application\dataFiles\baumullerFile.h" />
-    <ClInclude Include="../src\application\dataFiles\customFile.h" />
-    <ClInclude Include="../src\application\dataFiles\customFileFormat.h" />
-    <ClInclude Include="../src\application\dataFiles\customXMLFile.h" />
-    <ClInclude Include="../src\application\dataFiles\dataFile.h" />
-    <ClInclude Include="../src\application\dataFiles\genericFile.h" />
-    <ClInclude Include="../src\application\dataFiles\kollmorgenFile.h" />
-    <ClInclude Include="../src\application\dropTarget.h" />
-    <ClInclude Include="../src\application\fftDialog.h" />
-    <ClInclude Include="../src\application\filterDialog.h" />
-    <ClInclude Include="../src\application\mainFrame.h" />
-    <ClInclude Include="../src\application\multiChoiceDialog.h" />
-    <ClInclude Include="../src\application\plotObject.h" />
-    <ClInclude Include="../src\application\plotterApp.h" />
-    <ClInclude Include="../src\application\rangeLimitsDialog.h" />
-    <ClInclude Include="../src\application\frfDialog.h" />
-    <ClInclude Include="../src\application\textInputDialog.h" />
-    <ClInclude Include="../src\renderer\color.h" />
-    <ClInclude Include="../src\renderer\plotRenderer.h" />
-    <ClInclude Include="../src\renderer\primitives\axis.h" />
-    <ClInclude Include="../src\renderer\primitives\plotCursor.h" />
-    <ClInclude Include="../src\renderer\primitives\plotCurve.h" />
-    <ClInclude Include="../src\renderer\primitives\primitive.h" />
-    <ClInclude Include="..\src\renderer\primitives\textRendering.h" />
-    <ClInclude Include="../src\renderer\primitives\zoomBox.h" />
-    <ClInclude Include="../src\renderer\renderWindow.h" />
-    <ClInclude Include="../src\utilities\dataset2D.h" />
-    <ClInclude Include="../src\utilities\fontFinder.h" />
-    <ClInclude Include="../src\utilities\machineDefinitions.h" />
-    <ClInclude Include="../src\utilities\managedList.h" />
-    <ClInclude Include="../src\utilities\math\complex.h" />
-    <ClInclude Include="../src\utilities\math\expressionTree.h" />
-    <ClInclude Include="../src\utilities\math\matrix.h" />
-    <ClInclude Include="../src\utilities\math\plotMath.h" />
-    <ClInclude Include="../src\utilities\math\vector.h" />
-    <ClInclude Include="../src\utilities\signals\curveFit.h" />
-    <ClInclude Include="../src\utilities\signals\derivative.h" />
-    <ClInclude Include="../src\utilities\signals\fft.h" />
-    <ClInclude Include="../src\utilities\signals\filter.h" />
-    <ClInclude Include="../src\utilities\signals\integral.h" />
-    <ClInclude Include="../src\utilities\signals\rms.h" />
-    <ClInclude Include="..\src\renderer\line.h" />
-    <ClInclude Include="..\src\renderer\primitives\legend.h" />
-    <ClInclude Include="..\src\renderer\text.h" />
-    <ClInclude Include="..\src\utilities\arrayStringCompare.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="../src\application\createSignalDialog.cpp" />
-    <ClCompile Include="../src\application\dataFiles\baumullerFile.cpp" />
-    <ClCompile Include="../src\application\dataFiles\customFile.cpp" />
-    <ClCompile Include="../src\application\dataFiles\customFileFormat.cpp" />
-    <ClCompile Include="../src\application\dataFiles\customXMLFile.cpp" />
-    <ClCompile Include="../src\application\dataFiles\dataFile.cpp" />
-    <ClCompile Include="../src\application\dataFiles\genericFile.cpp" />
-    <ClCompile Include="../src\application\dataFiles\kollmorgenFile.cpp" />
-    <ClCompile Include="../src\application\dropTarget.cpp" />
-    <ClCompile Include="../src\application\fftDialog.cpp" />
-    <ClCompile Include="../src\application\filterDialog.cpp" />
-    <ClCompile Include="../src\application\mainFrame.cpp" />
-    <ClCompile Include="../src\application\multiChoiceDialog.cpp" />
-    <ClCompile Include="../src\application\plotObject.cpp" />
-    <ClCompile Include="../src\application\plotterApp.cpp" />
-    <ClCompile Include="../src\application\rangeLimitsDialog.cpp" />
-    <ClCompile Include="../src\application\frfDialog.cpp" />
-    <ClCompile Include="../src\application\textInputDialog.cpp" />
-    <ClCompile Include="../src\renderer\color.cpp" />
-    <ClCompile Include="../src\renderer\plotRenderer.cpp" />
-    <ClCompile Include="../src\renderer\primitives\axis.cpp" />
-    <ClCompile Include="../src\renderer\primitives\plotCursor.cpp" />
-    <ClCompile Include="../src\renderer\primitives\plotCurve.cpp" />
-    <ClCompile Include="../src\renderer\primitives\primitive.cpp" />
-    <ClCompile Include="..\src\renderer\primitives\textRendering.cpp" />
-    <ClCompile Include="../src\renderer\primitives\zoomBox.cpp" />
-    <ClCompile Include="../src\renderer\renderWindow.cpp" />
-    <ClCompile Include="../src\utilities\dataset2D.cpp" />
-    <ClCompile Include="../src\utilities\fontFinder.cpp" />
-    <ClCompile Include="../src\utilities\math\complex.cpp" />
-    <ClCompile Include="../src\utilities\math\expressionTree.cpp" />
-    <ClCompile Include="../src\utilities\math\matrix.cpp" />
-    <ClCompile Include="../src\utilities\math\plotMath.cpp" />
-    <ClCompile Include="../src\utilities\math\vector.cpp" />
-    <ClCompile Include="../src\utilities\signals\curveFit.cpp" />
-    <ClCompile Include="../src\utilities\signals\derivative.cpp" />
-    <ClCompile Include="../src\utilities\signals\fft.cpp" />
-    <ClCompile Include="../src\utilities\signals\filter.cpp" />
-    <ClCompile Include="../src\utilities\signals\integral.cpp" />
-    <ClCompile Include="../src\utilities\signals\rms.cpp" />
-    <ClCompile Include="..\src\application\gitHash.cpp" />
-    <ClCompile Include="..\src\renderer\line.cpp" />
-    <ClCompile Include="..\src\renderer\primitives\legend.cpp" />
-    <ClCompile Include="..\src\renderer\text.cpp" />
-    <ClCompile Include="..\src\utilities\arrayStringCompare.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="../res\DataPlotter.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\gitHash.cpp" />
+    <ClCompile Include="..\src\mainFrame.cpp" />
+    <ClCompile Include="..\src\plotterApp.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\mainFrame.h" />
+    <ClInclude Include="..\src\plotterApp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

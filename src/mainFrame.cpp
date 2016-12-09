@@ -26,33 +26,35 @@
 #include <wx/clipbrd.h>
 
 // Local headers
-#include "application/mainFrame.h"
-#include "application/plotterApp.h"
-#include "application/dropTarget.h"
-#include "application/rangeLimitsDialog.h"
-#include "application/filterDialog.h"
-#include "application/createSignalDialog.h"
-#include "application/dataFiles/genericFile.h"
-#include "application/dataFiles/baumullerFile.h"
-#include "application/dataFiles/kollmorgenFile.h"
-#include "application/dataFiles/customFile.h"
-#include "application/dataFiles/customXMLFile.h"
-#include "application/dataFiles/customFileFormat.h"
-#include "application/frfDialog.h"
-#include "application/fftDialog.h"
-#include "application/textInputDialog.h"
-#include "renderer/plotRenderer.h"
-#include "renderer/color.h"
-#include "renderer/primitives/legend.h"
-#include "utilities/dataset2D.h"
-#include "utilities/math/plotMath.h"
-#include "utilities/signals/integral.h"
-#include "utilities/signals/derivative.h"
-#include "utilities/signals/rms.h"
-#include "utilities/signals/fft.h"
-#include "utilities/math/expressionTree.h"
-#include "utilities/signals/filter.h"
-#include "utilities/arrayStringCompare.h"
+#include "mainFrame.h"
+#include "plotterApp.h"
+
+// LibPlot2D headers
+#include <lp2d/gui/dropTarget.h>
+#include <lp2d/gui/rangeLimitsDialog.h>
+#include <lp2d/gui/filterDialog.h>
+#include <lp2d/gui/createSignalDialog.h>
+#include <lp2d/gui/frfDialog.h>
+#include <lp2d/gui/fftDialog.h>
+#include <lp2d/gui/textInputDialog.h>
+#include <lp2d/parser/genericFile.h>
+#include <lp2d/parser/baumullerFile.h>
+#include <lp2d/parser/kollmorgenFile.h>
+#include <lp2d/parser/customFile.h>
+#include <lp2d/parser/customXMLFile.h>
+#include <lp2d/parser/customFileFormat.h>
+#include <lp2d/renderer/plotRenderer.h>
+#include <lp2d/renderer/color.h>
+#include <lp2d/renderer/primitives/legend.h>
+#include <lp2d/utilities/dataset2D.h>
+#include <lp2d/utilities/math/plotMath.h>
+#include <lp2d/utilities/signals/integral.h>
+#include <lp2d/utilities/signals/derivative.h>
+#include <lp2d/utilities/signals/rms.h>
+#include <lp2d/utilities/signals/fft.h>
+#include <lp2d/utilities/math/expressionTree.h>
+#include <lp2d/utilities/signals/filter.h>
+#include <lp2d/utilities/arrayStringCompare.h>
 
 // *nix Icons
 #ifdef __WXGTK__
@@ -108,7 +110,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxEmptyString, wxDefaultPositio
 	CreateControls();
 	SetProperties();
 
-	if (!CustomFileFormat::CustomDefinitionsExist())
+	if (!LibPlot2D::CustomFileFormat::CustomDefinitionsExist())
 		wxMessageBox(_T("Warning:  Custom file definitions not found!"),
 		_T("Custom File Formats"), wxICON_WARNING, this);
 
@@ -117,27 +119,6 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxEmptyString, wxDefaultPositio
 	srand(time(NULL));
 
 	//TestSignalOperations();
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		~MainFrame
-//
-// Description:		Denstructor for MainFrame class.  Frees memory and
-//					releases GUI object managers.
-//
-// Input Arguments:
-//		None
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		None
-//
-//==========================================================================
-MainFrame::~MainFrame()
-{
 }
 
 //==========================================================================
@@ -213,19 +194,19 @@ void MainFrame::CreateControls()
 //		None
 //
 // Return Value:
-//		PlotRenderer* pointing to plotArea
+//		LibPlot2D::PlotRenderer* pointing to plotArea
 //
 //==========================================================================
-PlotRenderer* MainFrame::CreatePlotArea(wxWindow *parent)
+LibPlot2D::PlotRenderer* MainFrame::CreatePlotArea(wxWindow *parent)
 {
 	wxGLAttributes displayAttributes;
 	displayAttributes.PlatformDefaults().RGBA().DoubleBuffer().SampleBuffers(1).Samplers(4).Stencil(1).EndList();
 	assert(wxGLCanvas::IsDisplaySupported(displayAttributes));
-	plotArea = new PlotRenderer(*parent, *this, wxID_ANY, displayAttributes);
+	plotArea = new LibPlot2D::PlotRenderer(*parent, wxID_ANY, displayAttributes);
 
 	plotArea->SetMinSize(wxSize(650, 320));
 	plotArea->SetMajorGridOn();
-	plotArea->SetCurveQuality(PlotRenderer::QualityHighWrite);
+	plotArea->SetCurveQuality(LibPlot2D::PlotRenderer::QualityHighWrite);
 
 	return plotArea;
 }
@@ -353,7 +334,7 @@ void MainFrame::SetProperties()
 	SetIcon(wxIcon(plots128_xpm));
 #endif
 
-	SetDropTarget(dynamic_cast<wxDropTarget*>(new DropTarget(*this)));
+	SetDropTarget(static_cast<wxDropTarget*>(new LibPlot2D::DropTarget(*this)));
 
 	const int entryCount(5);
 	wxAcceleratorEntry entries[entryCount];
@@ -596,7 +577,7 @@ void MainFrame::ContextExportData(wxCommandEvent& WXUNUSED(event))
 			outFile << optionsGrid->GetCellValue(i, colName);
 
 		if (i == plotList.GetCount())
-			outFile << endl;
+			outFile << std::endl;
 		else
 			outFile << delimiter;
 	}
@@ -615,7 +596,7 @@ void MainFrame::ContextExportData(wxCommandEvent& WXUNUSED(event))
 				outFile << delimiter;
 
 			if (i == plotList.GetCount() - 1)
-				outFile << endl;
+				outFile << std::endl;
 			else
 				outFile << delimiter;
 
@@ -968,11 +949,12 @@ bool MainFrame::LoadFiles(const wxArrayString &fileList)
 {
 	unsigned int i, j;
 	std::vector<bool> loaded(fileList.size());
-	std::vector<DataFile*> files(fileList.size());
-	typedef std::map<wxArrayString, DataFile::SelectionData, ArrayStringCompare> SelectionMap;
+	std::vector<LibPlot2D::DataFile*> files(fileList.size());
+	typedef std::map<wxArrayString, LibPlot2D::DataFile::SelectionData,
+		LibPlot2D::ArrayStringCompare> SelectionMap;
 	SelectionMap selectionInfoMap;
 	SelectionMap::const_iterator it;
-	DataFile::SelectionData selectionInfo;
+	LibPlot2D::DataFile::SelectionData selectionInfo;
 	bool atLeastOneFileLoaded(false);
 	for (i = 0; i < fileList.Count(); i++)
 	{
@@ -1301,8 +1283,8 @@ void MainFrame::AddCurve(wxString mathString)
 		return;
 
 	// Parse string and determine what the new dataset should look like
-	ExpressionTree expression(&plotList);
-	Dataset2D *mathChannel = new Dataset2D;
+	LibPlot2D::ExpressionTree expression(&plotList);
+	LibPlot2D::Dataset2D *mathChannel = new LibPlot2D::Dataset2D;
 
 	double xAxisFactor;
 	GetXAxisScalingFactor(xAxisFactor);// No warning here:  it's only an issue for FFTs and filters; warning are generated then
@@ -1338,7 +1320,7 @@ void MainFrame::AddCurve(wxString mathString)
 //		None
 //
 //==========================================================================
-void MainFrame::AddCurve(Dataset2D *data, wxString name)
+void MainFrame::AddCurve(LibPlot2D::Dataset2D *data, wxString name)
 {
 	plotList.Add(data);
 
@@ -1419,7 +1401,7 @@ unsigned int MainFrame::AddDataRowToGrid(const wxString &name)
 	optionsGrid->SetReadOnly(index, colMarkerSize, false);
 	optionsGrid->SetCellValue(index, colName, name);
 
-	Color color = GetNextColor(index);
+	LibPlot2D::Color color = GetNextColor(index);
 
 	optionsGrid->SetCellBackgroundColour(index, colColor, color.ToWxColor());
 	optionsGrid->SetCellValue(index, colLineSize, _T("1"));
@@ -1448,40 +1430,40 @@ unsigned int MainFrame::AddDataRowToGrid(const wxString &name)
 //		None
 //
 // Return Value:
-//		Color to sue
+//		LibPlot2D::Color to sue
 //
 //==========================================================================
-Color MainFrame::GetNextColor(const unsigned int &index) const
+LibPlot2D::Color MainFrame::GetNextColor(const unsigned int &index) const
 {
 	unsigned int colorIndex = (index - 1) % 12;
 	if (colorIndex == 0)
-		return Color::GetColorHSL(0.0, 1.0, 0.5);// (red)
+		return LibPlot2D::Color::GetColorHSL(0.0, 1.0, 0.5);// (red)
 	else if (colorIndex == 1)
-		return Color::GetColorHSL(2.0 / 3.0, 1.0, 0.5);// (blue)
+		return LibPlot2D::Color::GetColorHSL(2.0 / 3.0, 1.0, 0.5);// (blue)
 	else if (colorIndex == 2)
-		return Color::GetColorHSL(1.0 / 3.0, 1.0, 0.5);// (green)
+		return LibPlot2D::Color::GetColorHSL(1.0 / 3.0, 1.0, 0.5);// (green)
 	else if (colorIndex == 3)
-		return Color::GetColorHSL(0.125, 1.0, 0.5);// (gold)
+		return LibPlot2D::Color::GetColorHSL(0.125, 1.0, 0.5);// (gold)
 	else if (colorIndex == 4)
-		return Color::GetColorHSL(0.5, 0.5, 0.5);// (teal)
+		return LibPlot2D::Color::GetColorHSL(0.5, 0.5, 0.5);// (teal)
 	else if (colorIndex == 5)
-		return Color::GetColorHSL(5.0 / 6.0, 1.0, 0.5);// (magenta)
+		return LibPlot2D::Color::GetColorHSL(5.0 / 6.0, 1.0, 0.5);// (magenta)
 	else if (colorIndex == 6)
-		return Color::GetColorHSL(0.0, 0.5, 0.6);// (reddish brown)
+		return LibPlot2D::Color::GetColorHSL(0.0, 0.5, 0.6);// (reddish brown)
 	else if (colorIndex == 7)
-		return Color::GetColorHSL(0.73, 0.5, 0.5);// (purple)
+		return LibPlot2D::Color::GetColorHSL(0.73, 0.5, 0.5);// (purple)
 	else if (colorIndex == 8)
-		return Color::GetColorHSL(1.0 / 3.0, 0.5, 0.5);// (dark green)
+		return LibPlot2D::Color::GetColorHSL(1.0 / 3.0, 0.5, 0.5);// (dark green)
 	else if (colorIndex == 9)
-		return Color::GetColorHSL(1.0 / 6.0, 0.3, 0.5);// (gold brown)
+		return LibPlot2D::Color::GetColorHSL(1.0 / 6.0, 0.3, 0.5);// (gold brown)
 	else if (colorIndex == 10)
-		return Color::GetColorHSL(0.875, 0.5, 0.5);// (light purple)
+		return LibPlot2D::Color::GetColorHSL(0.875, 0.5, 0.5);// (light purple)
 	else if (colorIndex == 11)
-		return Color::ColorBlack;
+		return LibPlot2D::Color::ColorBlack;
 	else
 		assert(false);
 
-	return Color::ColorBlack;
+	return LibPlot2D::Color::ColorBlack;
 }
 
 //==========================================================================
@@ -1536,7 +1518,7 @@ void MainFrame::RemoveCurve(const unsigned int &i)
 void MainFrame::UpdateCurveQuality()
 {
 	//if (plotArea->GetTotalPointCount() > highQualityCurvePointLimit)
-		plotArea->SetCurveQuality(PlotRenderer::QualityHighWrite);
+		plotArea->SetCurveQuality(LibPlot2D::PlotRenderer::QualityHighWrite);
 	/*else
 		plotArea->SetCurveQuality(static_cast<PlotRenderer::CurveQuality>(
 		PlotRenderer::QualityHighStatic | PlotRenderer::QualityHighWrite));*/// TODO:  Fix this after line rendering is improved
@@ -1703,7 +1685,7 @@ void MainFrame::GridLeftClickEvent(wxGridEvent &event)
 //==========================================================================
 void MainFrame::UpdateCurveProperties(const unsigned int &index)
 {
-	Color color;
+	LibPlot2D::Color color;
 	color.Set(optionsGrid->GetCellBackgroundColour(index + 1, colColor));
 	UpdateCurveProperties(index, color,
 		!optionsGrid->GetCellValue(index + 1, colVisible).IsEmpty(),
@@ -1718,7 +1700,7 @@ void MainFrame::UpdateCurveProperties(const unsigned int &index)
 //
 // Input Arguments:
 //		index		= const unsigned int&
-//		color		= const Color&
+//		color		= const LibPlot2D::Color&
 //		visible		= const bool&
 //		rightAxis	= const bool&
 //
@@ -1729,8 +1711,8 @@ void MainFrame::UpdateCurveProperties(const unsigned int &index)
 //		None
 //
 //==========================================================================
-void MainFrame::UpdateCurveProperties(const unsigned int &index, const Color &color,
-	const bool &visible, const bool &rightAxis)
+void MainFrame::UpdateCurveProperties(const unsigned int &index,
+	const LibPlot2D::Color &color, const bool &visible, const bool &rightAxis)
 {
 	double lineSize;
 	long markerSize;
@@ -1761,8 +1743,8 @@ void MainFrame::UpdateLegend()
 {
 	double lineSize;
 	long markerSize;
-	std::vector<Legend::LegendEntryInfo> entries;
-	Legend::LegendEntryInfo info;
+	std::vector<LibPlot2D::Legend::LegendEntryInfo> entries;
+	LibPlot2D::Legend::LegendEntryInfo info;
 	int i;
 	for (i = 1; i < optionsGrid->GetNumberRows(); i++)
 	{
@@ -1771,7 +1753,7 @@ void MainFrame::UpdateLegend()
 			
 		optionsGrid->GetCellValue(i, colLineSize).ToDouble(&lineSize);
 		optionsGrid->GetCellValue(i, colMarkerSize).ToLong(&markerSize);
-		info.color = Color(optionsGrid->GetCellBackgroundColour(i, colColor));
+		info.color = LibPlot2D::Color(optionsGrid->GetCellBackgroundColour(i, colColor));
 		info.lineSize = lineSize;
 		info.markerSize = markerSize;
 		info.text = optionsGrid->GetCellValue(i, colName);
@@ -2136,25 +2118,25 @@ void MainFrame::ContextFRFEvent(wxCommandEvent& WXUNUSED(event))
 	for (i = 1; i < optionsGrid->GetNumberRows(); i++)
 		descriptions.Add(optionsGrid->GetCellValue(i, 0));
 
-	FRFDialog dialog(this, descriptions);
+	LibPlot2D::FRFDialog dialog(this, descriptions);
 	if (dialog.ShowModal() != wxID_OK)
 		return;
 
-	Dataset2D *amplitude = new Dataset2D, *phase = NULL, *coherence = NULL;
+	LibPlot2D::Dataset2D *amplitude = new LibPlot2D::Dataset2D, *phase = NULL, *coherence = NULL;
 
 	if (dialog.GetComputePhase())
-		phase = new Dataset2D;
+		phase = new LibPlot2D::Dataset2D;
 	if (dialog.GetComputeCoherence())
-		coherence = new Dataset2D;
+		coherence = new LibPlot2D::Dataset2D;
 
-	if (!PlotMath::XDataConsistentlySpaced(*plotList[dialog.GetInputIndex()]) ||
-		!PlotMath::XDataConsistentlySpaced(*plotList[dialog.GetOutputIndex()]))
+	if (!LibPlot2D::PlotMath::XDataConsistentlySpaced(*plotList[dialog.GetInputIndex()]) ||
+		!LibPlot2D::PlotMath::XDataConsistentlySpaced(*plotList[dialog.GetOutputIndex()]))
 		wxMessageBox(_T("Warning:  X-data is not consistently spaced.  Results may be unreliable."),
 			_T("Accuracy Warning"), wxICON_WARNING, this);
 
-	FastFourierTransform::ComputeFRF(*plotList[dialog.GetInputIndex()],
+	LibPlot2D::FastFourierTransform::ComputeFRF(*plotList[dialog.GetInputIndex()],
 		*plotList[dialog.GetOutputIndex()], dialog.GetNumberOfAverages(),
-		FastFourierTransform::WindowHann, dialog.GetModuloPhase(), *amplitude, phase, coherence);
+		LibPlot2D::FastFourierTransform::WindowHann, dialog.GetModuloPhase(), *amplitude, phase, coherence);
 
 	AddFFTCurves(factor, amplitude, phase, coherence, wxString::Format("[%u] to [%u]",
 		dialog.GetInputIndex(), dialog.GetOutputIndex()));
@@ -2188,12 +2170,12 @@ void MainFrame::ContextCreateSignalEvent(wxCommandEvent& WXUNUSED(event))
 		GetXAxisScalingFactor(factor);
 
 		// Use first curve to pull time and frequency information
-		sampleRate = 1.0 / PlotMath::GetAverageXSpacing(*plotList[0]) * factor;
+		sampleRate = 1.0 / LibPlot2D::PlotMath::GetAverageXSpacing(*plotList[0]) * factor;
 		startTime = plotList[0]->GetXData(0) / factor;
 		duration = plotList[0]->GetXData(plotList[0]->GetNumberOfPoints() - 1) / factor - startTime;
 	}
 
-	CreateSignalDialog dialog(this, startTime, duration, sampleRate);
+	LibPlot2D::CreateSignalDialog dialog(this, startTime, duration, sampleRate);
 
 	if (dialog.ShowModal() != wxID_OK)
 		return;
@@ -2218,9 +2200,9 @@ void MainFrame::ContextCreateSignalEvent(wxCommandEvent& WXUNUSED(event))
 //
 // Input Arguments:
 //		xFactor	= const double& scaling factor to convert X units to Hz
-//		amplitude	= Dataset2D*
-//		phase		= Dataset2D*
-//		coherence	= Dataset2D*
+//		amplitude	= LibPlot2D::Dataset2D*
+//		phase		= LibPlot2D::Dataset2D*
+//		coherence	= LibPlot2D::Dataset2D*
 //		namePortion	= const wxString& identifying the input/output signals
 //
 // Output Arguments:
@@ -2230,8 +2212,9 @@ void MainFrame::ContextCreateSignalEvent(wxCommandEvent& WXUNUSED(event))
 //		None
 //
 //==========================================================================
-void MainFrame::AddFFTCurves(const double& xFactor, Dataset2D *amplitude, Dataset2D *phase,
-	Dataset2D *coherence, const wxString &namePortion)
+void MainFrame::AddFFTCurves(const double& xFactor,
+	LibPlot2D::Dataset2D *amplitude, LibPlot2D::Dataset2D *phase,
+	LibPlot2D::Dataset2D *coherence, const wxString &namePortion)
 {
 	AddCurve(&(amplitude->MultiplyXData(xFactor)), _T("FRF Amplitude, ") + namePortion + _T(", [dB]"));
 	SetMarkerSize(optionsGrid->GetNumberRows() - 2, 0);
@@ -2339,7 +2322,7 @@ void MainFrame::ContextScaleXDataEvent(wxCommandEvent& WXUNUSED(event))
 		unsigned int stopIndex(plotList.GetCount());
 		for (i = 0; i < stopIndex; i++)
 		{
-			Dataset2D *scaledData = new Dataset2D(*plotList[i]);
+			LibPlot2D::Dataset2D *scaledData = new LibPlot2D::Dataset2D(*plotList[i]);
 			scaledData->MultiplyXData(factor);
 			AddCurve(scaledData, optionsGrid->GetCellValue(i + 1, colName));
 
@@ -2365,7 +2348,7 @@ void MainFrame::ContextScaleXDataEvent(wxCommandEvent& WXUNUSED(event))
 	{
 		for (i = 0; i < selectedRows.Count(); i++)
 		{
-			Dataset2D *scaledData = new Dataset2D(*plotList[selectedRows[i] - 1]);
+			LibPlot2D::Dataset2D *scaledData = new LibPlot2D::Dataset2D(*plotList[selectedRows[i] - 1]);
 			scaledData->MultiplyXData(factor);
 			AddCurve(scaledData, optionsGrid->GetCellValue(selectedRows[i], colName)
 				+ wxString::Format(", X-scaled by %f", factor));
@@ -2397,7 +2380,8 @@ void MainFrame::ContextPlotDerivativeEvent(wxCommandEvent& WXUNUSED(event))
 	for (i = 0; i < optionsGrid->GetSelectedRows().Count(); i++)
 	{
 		row = optionsGrid->GetSelectedRows()[i];
-		Dataset2D *newData = new Dataset2D(DiscreteDerivative::ComputeTimeHistory(*plotList[row - 1]));
+		LibPlot2D::Dataset2D *newData = new LibPlot2D::Dataset2D(
+			LibPlot2D::DiscreteDerivative::ComputeTimeHistory(*plotList[row - 1]));
 
 		wxString name = _T("d/dt(") + optionsGrid->GetCellValue(row, colName) + _T(")");
 		AddCurve(newData, name);
@@ -2428,7 +2412,8 @@ void MainFrame::ContextPlotIntegralEvent(wxCommandEvent& WXUNUSED(event))
 	for (i = 0; i < optionsGrid->GetSelectedRows().Count(); i++)
 	{
 		row = optionsGrid->GetSelectedRows()[i];
-		Dataset2D *newData = new Dataset2D(DiscreteIntegral::ComputeTimeHistory(*plotList[row - 1]));
+		LibPlot2D::Dataset2D *newData = new LibPlot2D::Dataset2D(
+			LibPlot2D::DiscreteIntegral::ComputeTimeHistory(*plotList[row - 1]));
 
 		wxString name = _T("integral(") + optionsGrid->GetCellValue(row, colName) + _T(")");
 		AddCurve(newData, name);
@@ -2459,7 +2444,8 @@ void MainFrame::ContextPlotRMSEvent(wxCommandEvent& WXUNUSED(event))
 	for (i = 0; i < optionsGrid->GetSelectedRows().Count(); i++)
 	{
 		row = optionsGrid->GetSelectedRows()[i];
-		Dataset2D *newData = new Dataset2D(RootMeanSquare::ComputeTimeHistory(*plotList[row - 1]));
+		LibPlot2D::Dataset2D *newData = new LibPlot2D::Dataset2D(
+			LibPlot2D::RootMeanSquare::ComputeTimeHistory(*plotList[row - 1]));
 
 		wxString name = _T("RMS(") + optionsGrid->GetCellValue(row, colName) + _T(")");
 		AddCurve(newData, name);
@@ -2489,7 +2475,7 @@ void MainFrame::ContextPlotFFTEvent(wxCommandEvent& WXUNUSED(event))
 	for (i = 0; i < optionsGrid->GetSelectedRows().Count(); i++)
 	{
 		row = optionsGrid->GetSelectedRows()[i];
-		Dataset2D *newData = GetFFTData(plotList[row - 1]);
+		LibPlot2D::Dataset2D *newData = GetFFTData(plotList[row - 1]);
 		if (!newData)
 			continue;
 
@@ -2531,7 +2517,8 @@ void MainFrame::ContextBitMaskEvent(wxCommandEvent& WXUNUSED(event))
 	for (i = 0; i < optionsGrid->GetSelectedRows().Count(); i++)
 	{
 		row = optionsGrid->GetSelectedRows()[i];
-		Dataset2D *newData = new Dataset2D(PlotMath::ApplyBitMask(*plotList[row - 1], bit));
+		LibPlot2D::Dataset2D *newData = new LibPlot2D::Dataset2D(
+			LibPlot2D::PlotMath::ApplyBitMask(*plotList[row - 1], bit));
 
 		wxString name = optionsGrid->GetCellValue(row, colName) + _T(", Bit ") + wxString::Format("%lu", bit);
 		AddCurve(newData, name);
@@ -2545,16 +2532,16 @@ void MainFrame::ContextBitMaskEvent(wxCommandEvent& WXUNUSED(event))
 // Description:		Returns a dataset containing an FFT of the specified data.
 //
 // Input Arguments:
-//		data	= const Dataset2D&
+//		data	= const LibPlot2D::Dataset2D&
 //
 // Output Arguments:
 //		None
 //
 // Return Value:
-//		Dataset2D* pointing to a dataset contining the new FFT data
+//		LibPlot2D::Dataset2D* pointing to a dataset contining the new FFT data
 //
 //==========================================================================
-Dataset2D* MainFrame::GetFFTData(const Dataset2D* data)
+LibPlot2D::Dataset2D* MainFrame::GetFFTData(const LibPlot2D::Dataset2D* data)
 {
 	double factor;
 	if (!GetXAxisScalingFactor(factor))
@@ -2562,25 +2549,25 @@ Dataset2D* MainFrame::GetFFTData(const Dataset2D* data)
 		wxMessageBox(_T("Warning:  Unable to identify X-axis units!  Frequency may be incorrectly scaled!"),
 			_T("Accuracy Warning"), wxICON_WARNING, this);
 
-	FFTDialog dialog(this, data->GetNumberOfPoints(),
+	LibPlot2D::FFTDialog dialog(this, data->GetNumberOfPoints(),
 		data->GetNumberOfZoomedPoints(plotArea->GetXMin(), plotArea->GetXMax()),
 		data->GetAverageDeltaX() / factor);
 
 	if (dialog.ShowModal() != wxID_OK)
 		return NULL;
 
-	if (!PlotMath::XDataConsistentlySpaced(*data))
+	if (!LibPlot2D::PlotMath::XDataConsistentlySpaced(*data))
 		wxMessageBox(_T("Warning:  X-data is not consistently spaced.  Results may be unreliable."),
 			_T("Accuracy Warning"), wxICON_WARNING, this);
 
-	Dataset2D *newData;
+	LibPlot2D::Dataset2D *newData;
 
 	if (dialog.GetUseZoomedData())
-		newData = new Dataset2D(FastFourierTransform::ComputeFFT(GetXZoomedDataset(*data),
+		newData = new LibPlot2D::Dataset2D(LibPlot2D::FastFourierTransform::ComputeFFT(GetXZoomedDataset(*data),
 			dialog.GetFFTWindow(), dialog.GetWindowSize(), dialog.GetOverlap(),
 			dialog.GetSubtractMean()));
 	else
-		newData = new Dataset2D(FastFourierTransform::ComputeFFT(*data,
+		newData = new LibPlot2D::Dataset2D(LibPlot2D::FastFourierTransform::ComputeFFT(*data,
 			dialog.GetFFTWindow(), dialog.GetWindowSize(), dialog.GetOverlap(),
 			dialog.GetSubtractMean()));
 
@@ -2597,16 +2584,16 @@ Dataset2D* MainFrame::GetFFTData(const Dataset2D* data)
 //					current zoomed x-limits.
 //
 // Input Arguments:
-//		fullData	= const Dataset2D&
+//		fullData	= const LibPlot2D::Dataset2D&
 //
 // Output Arguments:
 //		None
 //
 // Return Value:
-//		Dataset2D
+//		LibPlot2D::Dataset2D
 //
 //==========================================================================
-Dataset2D MainFrame::GetXZoomedDataset(const Dataset2D &fullData) const
+LibPlot2D::Dataset2D MainFrame::GetXZoomedDataset(const LibPlot2D::Dataset2D &fullData) const
 {
 	unsigned int i, startIndex(0), endIndex(0);
 	while (fullData.GetXData(startIndex) < plotArea->GetXMin() &&
@@ -2617,7 +2604,7 @@ Dataset2D MainFrame::GetXZoomedDataset(const Dataset2D &fullData) const
 		endIndex < fullData.GetNumberOfPoints())
 		endIndex++;
 
-	Dataset2D data(endIndex - startIndex);
+	LibPlot2D::Dataset2D data(endIndex - startIndex);
 	for (i = startIndex; i < endIndex; i++)
 	{
 		data.GetXPointer()[i - startIndex] = fullData.GetXData(i);
@@ -2660,7 +2647,7 @@ void MainFrame::ContextTimeShiftEvent(wxCommandEvent& WXUNUSED(event))
 	for (i = 0; i < optionsGrid->GetSelectedRows().Count(); i++)
 	{
 		row = optionsGrid->GetSelectedRows()[i];
-		Dataset2D *newData = new Dataset2D(*plotList[row - 1]);
+		LibPlot2D::Dataset2D *newData = new LibPlot2D::Dataset2D(*plotList[row - 1]);
 
 		newData->XShift(shift);
 
@@ -2690,7 +2677,7 @@ void MainFrame::ContextTimeShiftEvent(wxCommandEvent& WXUNUSED(event))
 void MainFrame::ContextFilterEvent(wxCommandEvent& WXUNUSED(event))
 {
 	// Display dialog
-	FilterParameters filterParameters = DisplayFilterDialog();
+	LibPlot2D::FilterParameters filterParameters = DisplayFilterDialog();
 	if (filterParameters.order == 0)
 		return;
 
@@ -2699,12 +2686,12 @@ void MainFrame::ContextFilterEvent(wxCommandEvent& WXUNUSED(event))
 	for (i = 0; i < optionsGrid->GetSelectedRows().Count(); i++)
 	{
 		row = optionsGrid->GetSelectedRows()[i];
-		const Dataset2D *currentData = plotList[row - 1];
-		Dataset2D *newData = new Dataset2D(*currentData);
+		const LibPlot2D::Dataset2D *currentData = plotList[row - 1];
+		LibPlot2D::Dataset2D *newData = new LibPlot2D::Dataset2D(*currentData);
 
 		ApplyFilter(filterParameters, *newData);
 
-		wxString name = FilterDialog::GetFilterNamePrefix(filterParameters) + _T(" (") + optionsGrid->GetCellValue(row, colName) + _T(")");
+		wxString name = LibPlot2D::FilterDialog::GetFilterNamePrefix(filterParameters) + _T(" (") + optionsGrid->GetCellValue(row, colName) + _T(")");
 		AddCurve(newData, name);
 	}
 }
@@ -2749,7 +2736,7 @@ void MainFrame::ContextFitCurve(wxCommandEvent& WXUNUSED(event))
 	{
 		row = optionsGrid->GetSelectedRows()[i];
 		wxString name;
-		Dataset2D* newData = GetCurveFitData(order, plotList[row - 1], name);
+		LibPlot2D::Dataset2D* newData = GetCurveFitData(order, plotList[row - 1], name);
 
 		AddCurve(newData, name);
 	}
@@ -2764,24 +2751,24 @@ void MainFrame::ContextFitCurve(wxCommandEvent& WXUNUSED(event))
 //
 // Input Arguments:
 //		order	= const unsigned int&
-//		data	= const Dataset2D*
+//		data	= const LibPlot2D::Dataset2D*
 //
 // Output Arguments:
 //		name	= wxString&
 //
 // Return Value:
-//		None
+//		LibPlot2D::::Dataset2D*
 //
 //==========================================================================
-Dataset2D* MainFrame::GetCurveFitData(const unsigned int &order,
-	const Dataset2D* data, wxString &name) const
+LibPlot2D::Dataset2D* MainFrame::GetCurveFitData(const unsigned int &order,
+	const LibPlot2D::Dataset2D* data, wxString &name) const
 {
-	CurveFit::PolynomialFit fitData = CurveFit::DoPolynomialFit(*data, order);
+	LibPlot2D::CurveFit::PolynomialFit fitData = LibPlot2D::CurveFit::DoPolynomialFit(*data, order);
 
-	Dataset2D *newData = new Dataset2D(*data);
+	LibPlot2D::Dataset2D *newData = new LibPlot2D::Dataset2D(*data);
 	unsigned int i;
 	for (i = 0; i < newData->GetNumberOfPoints(); i++)
-		newData->GetYPointer()[i] = CurveFit::EvaluateFit(newData->GetXData(i), fitData);
+		newData->GetYPointer()[i] = LibPlot2D::CurveFit::EvaluateFit(newData->GetXData(i), fitData);
 
 	name = GetCurveFitName(fitData, optionsGrid->GetSelectedRows()[0]);
 
@@ -2807,7 +2794,7 @@ Dataset2D* MainFrame::GetCurveFitData(const unsigned int &order,
 //		wxString indicating the name for the fit
 //
 //==========================================================================
-wxString MainFrame::GetCurveFitName(const CurveFit::PolynomialFit &fitData,
+wxString MainFrame::GetCurveFitName(const LibPlot2D::CurveFit::PolynomialFit &fitData,
 	const unsigned int &row) const
 {
 	wxString name, termString;
@@ -3135,7 +3122,7 @@ void MainFrame::DisplayAxisRangeDialog(const PlotContext &axis)
 	if (!GetCurrentAxisRange(axis, min, max))
 		return;
 
-	RangeLimitsDialog dialog(this, min, max);
+	LibPlot2D::RangeLimitsDialog dialog(this, min, max);
 	if (dialog.ShowModal() != wxID_OK)
 		return;
 
@@ -3624,7 +3611,7 @@ void MainFrame::ContextPlotBGColor(wxCommandEvent& WXUNUSED(event))
 	dialog.SetTitle(_T("Choose Background Color"));
 	if (dialog.ShowModal() == wxID_OK)
     {
-		Color color;
+		LibPlot2D::Color color;
 		color.Set(dialog.GetColourData().GetColour());
 		plotArea->SetBackgroundColor(color);
 		plotArea->UpdateDisplay();
@@ -3658,7 +3645,7 @@ void MainFrame::ContextGridColor(wxCommandEvent& WXUNUSED(event))
 	dialog.SetTitle(_T("Choose Background Color"));
 	if (dialog.ShowModal() == wxID_OK)
     {
-		Color color;
+		LibPlot2D::Color color;
 		color.Set(dialog.GetColourData().GetColour());
 		plotArea->SetGridColor(color);
 		plotArea->UpdateDisplay();
@@ -3679,15 +3666,15 @@ void MainFrame::ContextGridColor(wxCommandEvent& WXUNUSED(event))
 //		None
 //
 // Return Value:
-//		FilterParameters describing the user-specified filter (order = 0 for cancelled dialog)
+//		LibPlot2D::FilterParameters describing the user-specified filter (order = 0 for cancelled dialog)
 //
 //==========================================================================
-FilterParameters MainFrame::DisplayFilterDialog()
+LibPlot2D::FilterParameters MainFrame::DisplayFilterDialog()
 {
-	FilterDialog dialog(this);
+	LibPlot2D::FilterDialog dialog(this);
 	if (dialog.ShowModal() != wxID_OK)
 	{
-		FilterParameters parameters;
+		LibPlot2D::FilterParameters parameters;
 		parameters.order = 0;
 		return parameters;
 	}
@@ -3702,8 +3689,8 @@ FilterParameters MainFrame::DisplayFilterDialog()
 // Description:		Applies the specified filter to the specified dataset.
 //
 // Input Arguments:
-//		parameters	= const FilterParameters&
-//		data		= Dataset2D&
+//		parameters	= const LibPlot2D::FilterParameters&
+//		data		= LibPlot2D::Dataset2D&
 //
 // Output Arguments:
 //		None
@@ -3712,18 +3699,19 @@ FilterParameters MainFrame::DisplayFilterDialog()
 //		None
 //
 //==========================================================================
-void MainFrame::ApplyFilter(const FilterParameters &parameters, Dataset2D &data)
+void MainFrame::ApplyFilter(const LibPlot2D::FilterParameters &parameters,
+	LibPlot2D::Dataset2D &data)
 {
 	double factor;
 	if (!GetXAxisScalingFactor(factor))
 		wxMessageBox(_T("Warning:  Unable to identify X-axis units!  Cutoff frequency may be incorrect!"),
 			_T("Accuracy Warning"), wxICON_WARNING, this);
 
-	if (!PlotMath::XDataConsistentlySpaced(data))
+	if (!LibPlot2D::PlotMath::XDataConsistentlySpaced(data))
 		wxMessageBox(_T("Warning:  X-data is not consistently spaced.  Results may be unreliable."),
 			_T("Accuracy Warning"), wxICON_WARNING, this);
 
-	Filter *filter = GetFilter(parameters, factor / data.GetAverageDeltaX(), data.GetYData(0));
+	LibPlot2D::Filter *filter = GetFilter(parameters, factor / data.GetAverageDeltaX(), data.GetYData(0));
 
 	unsigned int i;
 	for (i = 0; i < data.GetNumberOfPoints(); i++)
@@ -3749,7 +3737,7 @@ void MainFrame::ApplyFilter(const FilterParameters &parameters, Dataset2D &data)
 // Description:		Returns a filter matching the specified parameters.
 //
 // Input Arguments:
-//		parameters		= const FilterParameters&
+//		parameters		= const LibPlot2D::FilterParameters&
 //		sampleRate		= const double& [Hz]
 //		initialValue	= const double&
 //
@@ -3757,14 +3745,16 @@ void MainFrame::ApplyFilter(const FilterParameters &parameters, Dataset2D &data)
 //		None
 //
 // Return Value:
-//		Filter*
+//		LibPlot2D::Filter*
 //
 //==========================================================================
-Filter* MainFrame::GetFilter(const FilterParameters &parameters,
+LibPlot2D::Filter* MainFrame::GetFilter(const LibPlot2D::FilterParameters &parameters,
 	const double &sampleRate, const double &initialValue) const
 {
-	return new Filter(sampleRate, Filter::CoefficientsFromString(std::string(parameters.numerator.mb_str())),
-		Filter::CoefficientsFromString(std::string(parameters.denominator.mb_str())), initialValue);
+	return new LibPlot2D::Filter(sampleRate,
+		LibPlot2D::Filter::CoefficientsFromString(std::string(parameters.numerator.mb_str())),
+		LibPlot2D::Filter::CoefficientsFromString(std::string(parameters.denominator.mb_str())),
+		initialValue);
 }
 
 //==========================================================================
@@ -3852,7 +3842,7 @@ void MainFrame::ContextSetLogarithmicRight(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::ContextEditBottomLabel(wxCommandEvent& WXUNUSED(event))
 {
-	TextInputDialog dialog(_T("Specify label text:"), _T("Edit Label"), plotArea->GetXLabel(), this);
+	LibPlot2D::TextInputDialog dialog(_T("Specify label text:"), _T("Edit Label"), plotArea->GetXLabel(), this);
 	if (dialog.ShowModal() == wxID_OK)
 		plotArea->SetXLabel(dialog.GetText());
 }
@@ -3876,7 +3866,7 @@ void MainFrame::ContextEditBottomLabel(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::ContextEditLeftLabel(wxCommandEvent& WXUNUSED(event))
 {
-	TextInputDialog dialog(_T("Specify label text:"), _T("Edit Label"), plotArea->GetLeftYLabel(), this);
+	LibPlot2D::TextInputDialog dialog(_T("Specify label text:"), _T("Edit Label"), plotArea->GetLeftYLabel(), this);
 	if (dialog.ShowModal() == wxID_OK)
 		plotArea->SetLeftYLabel(dialog.GetText());
 }
@@ -3900,7 +3890,7 @@ void MainFrame::ContextEditLeftLabel(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::ContextEditRightLabel(wxCommandEvent& WXUNUSED(event))
 {
-	TextInputDialog dialog(_T("Specify label text:"), _T("Edit Label"), plotArea->GetRightYLabel(), this);
+	LibPlot2D::TextInputDialog dialog(_T("Specify label text:"), _T("Edit Label"), plotArea->GetRightYLabel(), this);
 	if (dialog.ShowModal() == wxID_OK)
 		plotArea->SetRightYLabel(dialog.GetText());
 }
@@ -3943,23 +3933,23 @@ void MainFrame::SetMarkerSize(const unsigned int &curve, const int &size)
 //		None
 //
 // Return Value:
-//		DataFile*
+//		LibPlot2D::DataFile*
 //
 //==========================================================================
-DataFile* MainFrame::GetDataFile(const wxString &fileName)
+LibPlot2D::DataFile* MainFrame::GetDataFile(const wxString &fileName)
 {
-	if (BaumullerFile::IsType(fileName))
-		return new BaumullerFile(fileName);
-	else if (KollmorgenFile::IsType(fileName))
-		return new KollmorgenFile(fileName);
-	else if (CustomFile::IsType(fileName))
-		return new CustomFile(fileName);
-	else if (CustomXMLFile::IsType(fileName))
-		return new CustomXMLFile(fileName);
+	if (LibPlot2D::BaumullerFile::IsType(fileName))
+		return new LibPlot2D::BaumullerFile(fileName);
+	else if (LibPlot2D::KollmorgenFile::IsType(fileName))
+		return new LibPlot2D::KollmorgenFile(fileName);
+	else if (LibPlot2D::CustomFile::IsType(fileName))
+		return new LibPlot2D::CustomFile(fileName);
+	else if (LibPlot2D::CustomXMLFile::IsType(fileName))
+		return new LibPlot2D::CustomXMLFile(fileName);
 
 	// Don't even check - if we can't open it with any other types,
 	// always try to open it with a generic type
-	return new GenericFile(fileName);
+	return new LibPlot2D::GenericFile(fileName);
 }
 
 //==========================================================================

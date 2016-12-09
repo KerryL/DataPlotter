@@ -23,10 +23,10 @@
 #include <wx/wx.h>
 
 // Local headers
-#include "utilities/dataset2D.h"
-#include "utilities/managedList.h"
-#include "utilities/signals/curveFit.h"
-#include "application/dataFiles/dataFile.h"
+#include "lp2d/utilities/dataset2D.h"
+#include "lp2d/utilities/managedList.h"
+#include "lp2d/utilities/signals/curveFit.h"
+#include "lp2d/parser/dataFile.h"
 
 // wxWidgets forward declarations
 class wxGrid;
@@ -45,7 +45,7 @@ class MainFrame : public wxFrame
 {
 public:
 	MainFrame();
-	~MainFrame();
+	~MainFrame() = default;
 
 	// For getting a open/save file name from the user
 	wxArrayString GetFileNameFromUser(wxString dialogTitle, wxString defaultDirectory,
@@ -79,13 +79,13 @@ private:
 	void CreateControls();
 	void SetProperties();
 
-	PlotRenderer* CreatePlotArea(wxWindow *parent);
+	LibPlot2D::PlotRenderer* CreatePlotArea(wxWindow *parent);
 	wxGrid* CreateOptionsGrid(wxWindow *parent);
 	wxBoxSizer* CreateButtons(wxWindow *parent);
 
 	// Controls
 	wxGrid *optionsGrid;
-	PlotRenderer *plotArea;
+	LibPlot2D::PlotRenderer *plotArea;
 
 	enum Columns
 	{
@@ -110,18 +110,19 @@ private:
 
 	void ClearAllCurves();
 	void AddCurve(wxString mathString);
-	void AddCurve(Dataset2D *data, wxString name);
+	void AddCurve(LibPlot2D::Dataset2D *data, wxString name);
 	void RemoveCurve(const unsigned int &i);
 
-	Color GetNextColor(const unsigned int &index) const;
+	LibPlot2D::Color GetNextColor(const unsigned int &index) const;
 	void AddTimeRowToGrid();
 	unsigned int AddDataRowToGrid(const wxString &name);
 
-	void UpdateCurveProperties(const unsigned int &index, const Color &color,
-		const bool &visible, const bool &rightAxis);
+	void UpdateCurveProperties(const unsigned int &index,
+		const LibPlot2D::Color &color, const bool &visible,
+		const bool &rightAxis);
 	void UpdateCurveProperties(const unsigned int &index);
 
-	ManagedList<const Dataset2D> plotList;
+	LibPlot2D::ManagedList<const LibPlot2D::Dataset2D> plotList;
 
 	// The event IDs
 	enum MainFrameEventID
@@ -268,20 +269,20 @@ private:
 	void ShowAppropriateXLabel();
 
 	void DisplayMathChannelDialog(wxString defaultInput = wxEmptyString);
-	FilterParameters DisplayFilterDialog();
-	void ApplyFilter(const FilterParameters &parameters, Dataset2D &data);
+	LibPlot2D::FilterParameters DisplayFilterDialog();
+	void ApplyFilter(const LibPlot2D::FilterParameters &parameters, LibPlot2D::Dataset2D &data);
 
 	bool XScalingFactorIsKnown(double &factor, wxString *label) const;
 	static wxString ExtractUnitFromDescription(const wxString &description);
 	static bool FindWrappedString(const wxString &s, wxString &contents,
 		const wxChar &open, const wxChar &close);
 
-	Dataset2D *GetFFTData(const Dataset2D* data);
-	Dataset2D *GetCurveFitData(const unsigned int &order, const Dataset2D* data, wxString &name) const;
-	wxString GetCurveFitName(const CurveFit::PolynomialFit &fitData, const unsigned int &row) const;
+	LibPlot2D::Dataset2D *GetFFTData(const LibPlot2D::Dataset2D* data);
+	LibPlot2D::Dataset2D *GetCurveFitData(const unsigned int &order, const LibPlot2D::Dataset2D* data, wxString &name) const;
+	wxString GetCurveFitName(const LibPlot2D::CurveFit::PolynomialFit &fitData, const unsigned int &row) const;
 
-	void AddFFTCurves(const double& xFactor, Dataset2D *amplitude, Dataset2D *phase,
-		Dataset2D *coherence, const wxString &namePortion);
+	void AddFFTCurves(const double& xFactor, LibPlot2D::Dataset2D *amplitude, LibPlot2D::Dataset2D *phase,
+		LibPlot2D::Dataset2D *coherence, const wxString &namePortion);
 
 	void UpdateSingleCursorValue(const unsigned int &row, double value,
 		const unsigned int &column, const bool &isVisible);
@@ -291,10 +292,10 @@ private:
 	bool GetCurrentAxisRange(const PlotContext &axis, double &min, double &max) const;
 	void SetNewAxisRange(const PlotContext &axis, const double &min, const double &max);
 
-	Filter* GetFilter(const FilterParameters &parameters,
+	LibPlot2D::Filter* GetFilter(const LibPlot2D::FilterParameters &parameters,
 		const double &sampleRate, const double &initialValue) const;
 
-	DataFile* GetDataFile(const wxString &fileName);
+	LibPlot2D::DataFile* GetDataFile(const wxString &fileName);
 
 	enum FileFormat
 	{
@@ -314,10 +315,10 @@ private:
 	wxString ExtractFileNameFromPath(const wxString &pathAndFileName) const;
 
 	wxArrayString lastFilesLoaded;
-	DataFile::SelectionData lastSelectionInfo;
+	LibPlot2D::DataFile::SelectionData lastSelectionInfo;
 	wxArrayString lastDescriptions;
 
-	Dataset2D GetXZoomedDataset(const Dataset2D &fullData) const;
+	LibPlot2D::Dataset2D GetXZoomedDataset(const LibPlot2D::Dataset2D &fullData) const;
 
 	wxString GenerateTemporaryFileName(const unsigned int &length = 10) const;
 
