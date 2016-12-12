@@ -26,19 +26,10 @@
 #include "plotterApp.h"
 
 // LibPlot2D headers
-#include <lp2d/gui/textInputDialog.h>
 #include <lp2d/gui/plotListGrid.h>
-#include <lp2d/parser/genericFile.h>
-#include <lp2d/parser/baumullerFile.h>
-#include <lp2d/parser/kollmorgenFile.h>
-#include <lp2d/parser/customFile.h>
-#include <lp2d/parser/customXMLFile.h>
-#include <lp2d/parser/customFileFormat.h>
 #include <lp2d/renderer/plotRenderer.h>
-#include <lp2d/renderer/color.h>
-#include <lp2d/renderer/primitives/legend.h>
-#include <lp2d/utilities/dataset2D.h>
 #include <lp2d/utilities/guiUtilities.h>
+#include <lp2d/parser/customFileFormat.h>
 
 // *nix Icons
 #ifdef __WXGTK__
@@ -89,7 +80,7 @@ const unsigned long long MainFrame::highQualityCurvePointLimit(10000);
 //
 //==========================================================================
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxEmptyString,
-	wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE)
+	wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE), plotInterface(this)
 {
 	CreateControls();
 	SetProperties();
@@ -150,7 +141,7 @@ void MainFrame::CreateControls()
 	wxPanel *lowerPanel = new wxPanel(splitter);
 	wxBoxSizer *lowerSizer = new wxBoxSizer(wxHORIZONTAL);
 	lowerSizer->Add(CreateButtons(lowerPanel), 0, wxGROW | wxALL, 5);
-	lowerSizer->Add(new LibPlot2D::PlotListGrid(lowerPanel), 1, wxGROW | wxALL, 5);
+	lowerSizer->Add(new LibPlot2D::PlotListGrid(plotInterface, lowerPanel), 1, wxGROW | wxALL, 5);
 	lowerPanel->SetSizer(lowerSizer);
 
 	CreatePlotArea(splitter);
@@ -184,7 +175,7 @@ LibPlot2D::PlotRenderer* MainFrame::CreatePlotArea(wxWindow *parent)
 	wxGLAttributes displayAttributes;
 	displayAttributes.PlatformDefaults().RGBA().DoubleBuffer().SampleBuffers(1).Samplers(4).Stencil(1).EndList();
 	assert(wxGLCanvas::IsDisplaySupported(displayAttributes));
-	plotArea = new LibPlot2D::PlotRenderer(*parent, wxID_ANY, displayAttributes);
+	plotArea = new LibPlot2D::PlotRenderer(plotInterface, *parent, wxID_ANY, displayAttributes);
 
 	plotArea->SetMinSize(wxSize(650, 320));
 	plotArea->SetMajorGridOn();
@@ -249,6 +240,7 @@ void MainFrame::SetProperties()
 {
 	SetTitle(DataPlotterApp::dataPlotterTitle);
 	SetName(DataPlotterApp::dataPlotterName);
+	plotInterface.SetApplicationTitle(DataPlotterApp::dataPlotterTitle);
 	Center();
 
 #ifdef __WXMSW__
@@ -264,8 +256,8 @@ void MainFrame::SetProperties()
 
 	const int entryCount(5);
 	wxAcceleratorEntry entries[entryCount];
-	entries[0].Set(wxACCEL_CTRL, (int)'c', idPlotContextCopy);
-	entries[1].Set(wxACCEL_CTRL, (int)'v', idPlotContextPaste);
+	entries[0].Set(wxACCEL_CTRL, (int)'c', idCopyEvent);
+	entries[1].Set(wxACCEL_CTRL, (int)'v', idPasteEvent);
 	entries[2].Set(wxACCEL_CTRL, (int)'o', idButtonOpen);
 	entries[3].Set(wxACCEL_CTRL, (int)'a', idButtonAutoScale);
 	entries[4].Set(wxACCEL_CTRL, (int)'r', idButtonRemoveCurve);
@@ -290,10 +282,12 @@ void MainFrame::SetProperties()
 //
 //==========================================================================
 BEGIN_EVENT_TABLE(MainFrame, wxFrame)
-	EVT_BUTTON(idButtonOpen,						MainFrame::ButtonOpenClickedEvent)
-	EVT_BUTTON(idButtonAutoScale,					MainFrame::ButtonAutoScaleClickedEvent)
-	EVT_BUTTON(idButtonRemoveCurve,					MainFrame::ButtonRemoveCurveClickedEvent)
-	EVT_BUTTON(idButtonReloadData,					MainFrame::ButtonReloadDataClickedEvent)
+	EVT_BUTTON(idButtonOpen,			MainFrame::ButtonOpenClickedEvent)
+	EVT_BUTTON(idButtonAutoScale,		MainFrame::ButtonAutoScaleClickedEvent)
+	EVT_BUTTON(idButtonRemoveCurve,		MainFrame::ButtonRemoveCurveClickedEvent)
+	EVT_BUTTON(idButtonReloadData,		MainFrame::ButtonReloadDataClickedEvent)
+	EVT_BUTTON(idCopyEvent,				MainFrame::CopyEvent)
+	EVT_BUTTON(idPasteEvent,			MainFrame::PasteEvent)
 END_EVENT_TABLE();
 
 //==========================================================================
@@ -327,7 +321,7 @@ void MainFrame::ButtonOpenClickedEvent(wxCommandEvent& WXUNUSED(event))
 	if (fileList.GetCount() == 0)
 		return;
 
-	plotInterface.LoadFiles(fileList, this);
+	plotInterface.LoadFiles(fileList);
 }
 
 //==========================================================================
@@ -369,15 +363,7 @@ void MainFrame::ButtonAutoScaleClickedEvent(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::ButtonRemoveCurveClickedEvent(wxCommandEvent& WXUNUSED(event))
 {
-	// Workaround for now
-	int i;
-	for (i = optionsGrid->GetNumberRows() - 1; i > 0; i--)
-	{
-		if (optionsGrid->IsInSelection(i, 0))
-			RemoveCurve(i - 1);
-	}
-
-	plotArea->UpdateDisplay();
+	plotInterface.RemoveCurves(optionsGrid->GetSelectedRows());
 }
 
 //==========================================================================
@@ -403,6 +389,48 @@ void MainFrame::ButtonReloadDataClickedEvent(wxCommandEvent& WXUNUSED(event))
 
 //==========================================================================
 // Class:			MainFrame
+// Function:		CopyEvent
+//
+// Description:		Event fires when user uses CTRL-C.
+//
+// Input Arguments:
+//		event	= &wxCommandEvent (unused)
+//
+// Output Arguments:
+//		None
+//
+// Return Value:
+//		None
+//
+//==========================================================================
+void MainFrame::CopyEvent(wxCommandEvent& WXUNUSED(event))
+{
+	plotInterface.Copy();
+}
+
+//==========================================================================
+// Class:			MainFrame
+// Function:		ButtonReloadDataClickedEvent
+//
+// Description:		Event fires when user uses CTRL-v.
+//
+// Input Arguments:
+//		event	= &wxCommandEvent (unused)
+//
+// Output Arguments:
+//		None
+//
+// Return Value:
+//		None
+//
+//==========================================================================
+void MainFrame::PasteEvent(wxCommandEvent& WXUNUSED(event))
+{
+	plotInterface.Paste();
+}
+
+//==========================================================================
+// Class:			MainFrame
 // Function:		SetTitleFromFileName
 //
 // Description:		Sets the frame's title according to the specified file name.
@@ -419,514 +447,9 @@ void MainFrame::ButtonReloadDataClickedEvent(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::SetTitleFromFileName(wxString pathAndFileName)
 {
-	wxString fileName(ExtractFileNameFromPath(pathAndFileName));
+	wxString fileName(LibPlot2D::GuiUtilities::ExtractFileNameFromPath(pathAndFileName));
 	unsigned int end(fileName.find_last_of(_T(".")));
 	SetTitle(fileName.Mid(0, end) + _T(" - ") + DataPlotterApp::dataPlotterTitle);
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		ExtractFileNameFromPath
-//
-// Description:		Removes the path from the path and file name.
-//
-// Input Arguments:
-//		pathAndFileName	= const wxString&
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		wxString
-//
-//==========================================================================
-wxString MainFrame::ExtractFileNameFromPath(const wxString &pathAndFileName) const
-{
-	unsigned int start;
-#ifdef __WXMSW__
-	start = pathAndFileName.find_last_of(_T("\\")) + 1;
-#else
-	start = pathAndFileName.find_last_of(_T("/")) + 1;
-#endif
-	return pathAndFileName.Mid(start);
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		SetXDataLabel
-//
-// Description:		Sets the x-data labels to the specified string.
-//
-// Input Arguments:
-//		label	= wxString
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		None
-//
-//==========================================================================
-void MainFrame::SetXDataLabel(wxString label)
-{
-	optionsGrid->SetCellValue(0, colName, label);
-	plotArea->SetXLabel(label);
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		SetXDataLabel
-//
-// Description:		Sets the x-data labels according to the opened file type.
-//
-// Input Arguments:
-//		None
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		None
-//
-//==========================================================================
-void MainFrame::SetXDataLabel(const FileFormat &format)
-{
-	switch (format)
-	{
-	case FormatFrequency:
-		SetXDataLabel(_T("Frequency [Hz]"));
-		break;
-
-	default:
-	case FormatGeneric:
-	case FormatKollmorgen:
-	case FormatBaumuller:
-		SetXDataLabel(genericXAxisLabel);
-	}
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		UpdateCurveQuality
-//
-// Description:		Sets curve quality according to how many lines need to
-//					be rendered.
-//
-// Input Arguments:
-//		None
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		None
-//
-//==========================================================================
-void MainFrame::UpdateCurveQuality()
-{
-	//if (plotArea->GetTotalPointCount() > highQualityCurvePointLimit)
-		plotArea->SetCurveQuality(LibPlot2D::PlotRenderer::QualityHighWrite);
-	/*else
-		plotArea->SetCurveQuality(static_cast<PlotRenderer::CurveQuality>(
-		PlotRenderer::QualityHighStatic | PlotRenderer::QualityHighWrite));*/// TODO:  Fix this after line rendering is improved
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		UpdateLegend
-//
-// Description:		Updates the contents of the legend actor.
-//
-// Input Arguments:
-//		None
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		None
-//
-//==========================================================================
-void MainFrame::UpdateLegend()
-{
-	double lineSize;
-	long markerSize;
-	std::vector<LibPlot2D::Legend::LegendEntryInfo> entries;
-	LibPlot2D::Legend::LegendEntryInfo info;
-	int i;
-	for (i = 1; i < optionsGrid->GetNumberRows(); i++)
-	{
-		if (optionsGrid->GetCellValue(i, colVisible).IsEmpty())
-			continue;
-			
-		optionsGrid->GetCellValue(i, colLineSize).ToDouble(&lineSize);
-		optionsGrid->GetCellValue(i, colMarkerSize).ToLong(&markerSize);
-		info.color = LibPlot2D::Color(optionsGrid->GetCellBackgroundColour(i, colColor));
-		info.lineSize = lineSize;
-		info.markerSize = markerSize;
-		info.text = optionsGrid->GetCellValue(i, colName);
-		entries.push_back(info);
-	}
-	plotArea->UpdateLegend(entries);
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		ShowAppropriateXLabel
-//
-// Description:		Updates the x-axis label as necessary.
-//
-// Input Arguments:
-//		None
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		None
-//
-//==========================================================================
-void MainFrame::ShowAppropriateXLabel()
-{
-	// If the only visible curves are frequency plots, change the x-label
-	int i;
-	bool showFrequencyLabel(false);
-	for (i = 1; i < optionsGrid->GetNumberRows(); i++)
-	{
-		if (optionsGrid->GetCellValue(i, colVisible).Cmp(_T("1")) == 0)
-		{
-			if (optionsGrid->GetCellValue(i, colName).Mid(0, 3).CmpNoCase(_T("FFT")) == 0 ||
-				optionsGrid->GetCellValue(i, colName).Mid(0, 3).CmpNoCase(_T("FRF")) == 0)
-				showFrequencyLabel = true;
-			else
-			{
-				showFrequencyLabel = false;
-				break;
-			}
-		}
-	}
-
-	if (showFrequencyLabel)
-		SetXDataLabel(FormatFrequency);
-	else
-		SetXDataLabel(currentFileFormat);
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		GetXAxisScalingFactor
-//
-// Description:		Attempts to determine the scaling factor required to convert
-//					the X-axis into seconds (assuming X-axis has units of time).
-//
-// Input Arguments:
-//		None
-//
-// Output Arguments:
-//		factor	= double&, scaling factor
-//		label	= wxString*, pointer to string, to be populated with the unit string
-//
-// Return Value:
-//		bool; true for success, false otherwise
-//
-//==========================================================================
-bool MainFrame::GetXAxisScalingFactor(double &factor, wxString *label)
-{
-	if (XScalingFactorIsKnown(factor, label))
-		return true;
-
-	wxString unit = ExtractUnitFromDescription(genericXAxisLabel);
-
-	unit = unit.Trim().Trim(false);
-	if (label)
-		label->assign(unit);
-
-	return UnitStringToFactor(unit, factor);
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		XScalingFactorIsKnown
-//
-// Description:		If the x-axis scaling factor is known, determines its value.
-//
-// Input Arguments:
-//		None
-//
-// Output Arguments:
-//		factor	= double&
-//		label	= wxString*
-//
-// Return Value:
-//		bool, true if known, false otherwise
-//
-//==========================================================================
-bool MainFrame::XScalingFactorIsKnown(double &factor, wxString *label) const
-{
-	if (currentFileFormat == FormatBaumuller)
-	{
-		factor = 1000.0;
-		if (label)
-			label->assign(_T("msec"));
-		return true;
-	}
-	else if (currentFileFormat == FormatKollmorgen)
-	{
-		factor = 1.0;
-		if (label)
-			label->assign(_T("sec"));
-		return true;
-	}
-
-	return false;
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		ExtractUnitFromDescription
-//
-// Description:		Parses the description looking for a unit string.  This
-//					will recognize the following as unit strings:
-//					X Series Name [unit]
-//					X Series Name (unit)
-//					X Series Name *delimiter* unit
-//
-// Input Arguments:
-//		description	= const wxString&
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		wxString containing the unit porition of the description
-//
-//==========================================================================
-wxString MainFrame::ExtractUnitFromDescription(const wxString &description)
-{
-	wxString unit;
-	if (FindWrappedString(description, unit, '[', ']'))
-		return unit;
-	else if (FindWrappedString(description, unit, '(', ')'))
-		return unit;
-
-	// Check for last string following a delimiter
-	wxArrayString delimiters;
-	delimiters.Add(_T(","));
-	delimiters.Add(_T(";"));
-	delimiters.Add(_T("-"));
-	delimiters.Add(_T(":"));
-
-	int location;
-	unsigned int i;
-	for (i = 0; i < delimiters.size(); i++)
-	{
-		location = description.Find(delimiters[i].mb_str());
-		if (location != wxNOT_FOUND && location < (int)description.Len() - 1)
-		{
-			unit = description.Mid(location + 1);
-			break;
-		}
-	}
-
-	return unit;
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		FindWrappedString
-//
-// Description:		Determines if the specified string contains a string wrapped
-//					with the specified characters.
-//
-// Input Arguments:
-//		s		= const wxString&
-//		open	= const wxChar& specifying the opening wrapping character
-//		close	= const wxChar& specifying the closing warpping character
-//
-// Output Arguments:
-//		contents	= wxString&
-//
-// Return Value:
-//		bool, true if a wrapped string is found, false otherwise
-//
-//==========================================================================
-bool MainFrame::FindWrappedString(const wxString &s, wxString &contents,
-	const wxChar &open, const wxChar &close)
-{
-	if (s.Len() < 3)
-		return false;
-
-	if (s.Last() == close)
-	{
-		int i;
-		for (i = s.Len() - 2; i >= 0; i--)
-		{
-			if (s.at(i) == open)
-			{
-				contents = s.Mid(i + 1, s.Len() - i - 2);
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		UnitStringToFactor
-//
-// Description:		Converts from a unit string to a factor value.
-//
-// Input Arguments:
-//		unit	= const wxString&
-//
-// Output Arguments:
-//		factor	= double&
-//
-// Return Value:
-//		bool, true if unit can be converted, false otherwise
-//
-//==========================================================================
-bool MainFrame::UnitStringToFactor(const wxString &unit, double &factor)
-{
-	// We'll recognize the following units:
-	// h, hr, hours -> factor = 1.0 / 3600.0
-	// m, min, minutes -> factor = 1.0 / 60.0
-	// s, sec, seconds -> factor = 1.0
-	// ms, msec, milliseconds -> factor = 1000.0
-	// us, usec, microseconds -> factor = 1000000.0
-
-	if (unit.CmpNoCase(_T("h")) == 0 || unit.CmpNoCase(_T("hr")) == 0 || unit.CmpNoCase(_T("hours")) == 0)
-		factor = 1.0 / 3600.0;
-	else if (unit.CmpNoCase(_T("m")) == 0 || unit.CmpNoCase(_T("min")) == 0 || unit.CmpNoCase(_T("minutes")) == 0)
-		factor = 1.0 / 60.0;
-	else if (unit.CmpNoCase(_T("s")) == 0 || unit.CmpNoCase(_T("sec")) == 0 || unit.CmpNoCase(_T("seconds")) == 0)
-		factor = 1.0;
-	else if (unit.CmpNoCase(_T("ms")) == 0 || unit.CmpNoCase(_T("msec")) == 0 || unit.CmpNoCase(_T("milliseconds")) == 0)
-		factor = 1000.0;
-	else if (unit.CmpNoCase(_T("us")) == 0 || unit.CmpNoCase(_T("usec")) == 0 || unit.CmpNoCase(_T("microseconds")) == 0)
-		factor = 1000000.0;
-	else
-	{
-		// Assume a factor of 1
-		factor = 1.0;
-		return false;
-	}
-
-	return true;
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		GetFFTData
-//
-// Description:		Returns a dataset containing an FFT of the specified data.
-//
-// Input Arguments:
-//		data	= const LibPlot2D::Dataset2D&
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		LibPlot2D::Dataset2D* pointing to a dataset contining the new FFT data
-//
-//==========================================================================
-LibPlot2D::Dataset2D* MainFrame::GetFFTData(const LibPlot2D::Dataset2D* data)
-{
-	double factor;
-	if (!GetXAxisScalingFactor(factor))
-		// Warn the user if we cannot determine the time units, but create the plot anyway
-		wxMessageBox(_T("Warning:  Unable to identify X-axis units!  Frequency may be incorrectly scaled!"),
-			_T("Accuracy Warning"), wxICON_WARNING, this);
-
-	LibPlot2D::FFTDialog dialog(this, data->GetNumberOfPoints(),
-		data->GetNumberOfZoomedPoints(plotArea->GetXMin(), plotArea->GetXMax()),
-		data->GetAverageDeltaX() / factor);
-
-	if (dialog.ShowModal() != wxID_OK)
-		return NULL;
-
-	if (!LibPlot2D::PlotMath::XDataConsistentlySpaced(*data))
-		wxMessageBox(_T("Warning:  X-data is not consistently spaced.  Results may be unreliable."),
-			_T("Accuracy Warning"), wxICON_WARNING, this);
-
-	LibPlot2D::Dataset2D *newData;
-
-	if (dialog.GetUseZoomedData())
-		newData = new LibPlot2D::Dataset2D(LibPlot2D::FastFourierTransform::ComputeFFT(GetXZoomedDataset(*data),
-			dialog.GetFFTWindow(), dialog.GetWindowSize(), dialog.GetOverlap(),
-			dialog.GetSubtractMean()));
-	else
-		newData = new LibPlot2D::Dataset2D(LibPlot2D::FastFourierTransform::ComputeFFT(*data,
-			dialog.GetFFTWindow(), dialog.GetWindowSize(), dialog.GetOverlap(),
-			dialog.GetSubtractMean()));
-
-	newData->MultiplyXData(factor);
-
-	return newData;
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		GetXZoomedDataset
-//
-// Description:		Returns a dataset containing only the data within the
-//					current zoomed x-limits.
-//
-// Input Arguments:
-//		fullData	= const LibPlot2D::Dataset2D&
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		LibPlot2D::Dataset2D
-//
-//==========================================================================
-LibPlot2D::Dataset2D MainFrame::GetXZoomedDataset(const LibPlot2D::Dataset2D &fullData) const
-{
-	unsigned int i, startIndex(0), endIndex(0);
-	while (fullData.GetXData(startIndex) < plotArea->GetXMin() &&
-		startIndex < fullData.GetNumberOfPoints())
-		startIndex++;
-	endIndex = startIndex;
-	while (fullData.GetXData(endIndex) < plotArea->GetXMax() &&
-		endIndex < fullData.GetNumberOfPoints())
-		endIndex++;
-
-	LibPlot2D::Dataset2D data(endIndex - startIndex);
-	for (i = startIndex; i < endIndex; i++)
-	{
-		data.GetXPointer()[i - startIndex] = fullData.GetXData(i);
-		data.GetYPointer()[i - startIndex] = fullData.GetYData(i);
-	}
-
-	return data;
-}
-
-//==========================================================================
-// Class:			MainFrame
-// Function:		SetMarkerSize
-//
-// Description:		Sets the marker size for the specified curve.
-//
-// Input Arguments:
-//		curve	= const unsigned int&
-//		size	= const int&
-//
-// Output Arguments:
-//		None
-//
-// Return Value:
-//		None
-//
-//==========================================================================
-void MainFrame::SetMarkerSize(const unsigned int &curve, const int &size)
-{
-	optionsGrid->SetCellValue(curve + 1, colMarkerSize, wxString::Format("%i", size));
-	UpdateCurveProperties(curve);
 }
 
 //==========================================================================

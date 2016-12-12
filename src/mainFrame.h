@@ -16,15 +16,14 @@
 #ifndef MAIN_FRAME_H_
 #define MAIN_FRAME_H_
 
-// Standard C++ headers
-#include <vector>
+// LibPlot2D headers
+#include <lp2d/gui/guiInterface.h>
 
 // wxWidgets headers
 #include <wx/wx.h>
 
-// Local headers
-#include "lp2d/utilities/dataset2D.h"
-#include "lp2d/parser/dataFile.h"
+// Standard C++ headers
+#include <vector>
 
 // wxWidgets forward declarations
 class wxGrid;
@@ -33,14 +32,8 @@ class wxGridEvent;
 // LibPlot2D forward declarations
 namespace LibPlot2D
 {
-
 class PlotRenderer;
-class CustomFileFormat;
-class Color;
-class Filter;
-class DataFile;
 class PlotListGrid;
-
 }
 
 // The main frame class
@@ -50,11 +43,10 @@ public:
 	MainFrame();
 	~MainFrame() = default;
 
-	bool GetXAxisScalingFactor(double &factor, wxString *label = NULL);
-	static bool UnitStringToFactor(const wxString &unit, double &factor);
-
 private:
 	static const unsigned long long highQualityCurvePointLimit;
+
+	LibPlot2D::GuiInterface plotInterface;
 
 	// Functions that do some of the frame initialization and control positioning
 	void CreateControls();
@@ -73,7 +65,10 @@ private:
 		idButtonOpen = wxID_HIGHEST + 500,
 		idButtonAutoScale,
 		idButtonRemoveCurve,
-		idButtonReloadData
+		idButtonReloadData,
+
+		idCopyEvent,
+		idPasteEvent
 	};
 
 	// Button events
@@ -82,33 +77,11 @@ private:
 	void ButtonRemoveCurveClickedEvent(wxCommandEvent &event);
 	void ButtonReloadDataClickedEvent(wxCommandEvent &event);
 
-	void SetMarkerSize(const unsigned int &curve, const int &size);
-
-	void ShowAppropriateXLabel();
-
-	bool XScalingFactorIsKnown(double &factor, wxString *label) const;
-	static wxString ExtractUnitFromDescription(const wxString &description);
-	static bool FindWrappedString(const wxString &s, wxString &contents,
-		const wxChar &open, const wxChar &close);
-
-	LibPlot2D::Dataset2D *GetFFTData(const LibPlot2D::Dataset2D* data);
-
-	void AddFFTCurves(const double& xFactor, LibPlot2D::Dataset2D *amplitude,
-		LibPlot2D::Dataset2D *phase, LibPlot2D::Dataset2D *coherence,
-		const wxString &namePortion);
-		
-	void UpdateLegend();
-
-	LibPlot2D::Filter* GetFilter(const LibPlot2D::FilterParameters &parameters,
-		const double &sampleRate, const double &initialValue) const;
+	// Shortcut-only events
+	void CopyEvent(wxCommandEvent &event);
+	void PasteEvent(wxCommandEvent &event);
 
 	void SetTitleFromFileName(wxString pathAndFileName);
-	void SetXDataLabel(wxString label);
-	void SetXDataLabel(const FileFormat &format);
-
-	LibPlot2D::Dataset2D GetXZoomedDataset(const LibPlot2D::Dataset2D &fullData) const;
-
-	void UpdateCurveQuality();
 
 	DECLARE_EVENT_TABLE();
 
