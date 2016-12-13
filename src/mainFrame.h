@@ -56,7 +56,6 @@ private:
 	wxBoxSizer* CreateButtons(wxWindow *parent);
 
 	// Controls
-	LibPlot2D::PlotListGrid *optionsGrid;
 	LibPlot2D::PlotRenderer *plotArea;
 
 	// The event IDs

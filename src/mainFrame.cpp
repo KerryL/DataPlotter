@@ -363,7 +363,7 @@ void MainFrame::ButtonAutoScaleClickedEvent(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::ButtonRemoveCurveClickedEvent(wxCommandEvent& WXUNUSED(event))
 {
-	plotInterface.RemoveCurves(optionsGrid->GetSelectedRows());
+	plotInterface.RemoveSelectedCurves();
 }
 
 //==========================================================================
