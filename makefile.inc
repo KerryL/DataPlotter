@@ -24,10 +24,7 @@ LIBDIRS = $(addprefix -L,$(LIBDIRS_TEMP))
 # DO NOT include the -l prefix to these libraries - it
 # will be added automatically
 LIBS_TEMP = \
-	Plot2d
-
-LIBS_TEMP_D = \
-	Plot2d_d
+	
 
 LIBS = $(addprefix -l,$(LIBS_TEMP))
 LIBS_D = $(addprefix -l,$(LIBS_TEMP_D))
@@ -47,13 +44,13 @@ AR = ar rcs
 RANLIB = ranlib
 
 # Compiler flags
-CFLAGS = -Wall -Wextra $(INCDIRS) `pkg-config --cflags freetype2` -DwxUSE_GUI=1 -Wno-unused-local-typedefs -std=c++14
+CFLAGS = -Wall -Wextra $(INCDIRS) `pkg-config --cflags lp2d` -DwxUSE_GUI=1 -Wno-unused-local-typedefs -std=c++14
 CFLAGS_RELEASE = $(CFLAGS) -O2 `wx-config --version=3.1 --debug=no --cppflags`
 CFLAGS_DEBUG = $(CFLAGS) -g `wx-config --version=3.1 --debug=yes --cppflags`
 
 # Linker flags
-LDFLAGS = $(LIBDIRS) $(LIBS) `pkg-config --libs gl,glew,freetype2`
-LDFLAGS_D = $(LIBDIRS) $(LIBS_D) `pkg-config --libs gl,glew,freetype2`
+LDFLAGS = $(LIBDIRS) $(LIBS) `pkg-config --libs lp2d`
+LDFLAGS_D = $(LIBDIRS) $(LIBS_D) `pkg-config --libs lp2d`
 LDFLAGS_DEBUG = $(LDFLAGS) `wx-config --version=3.1 --debug=yes --libs all`
 LDFLAGS_RELEASE = $(LDFLAGS) `wx-config --version=3.1 --debug=no --libs all`
 
