@@ -9,17 +9,11 @@ TARGET_DEBUG = DataPlotterd
 
 # Directories in which to search for source files
 DIRS = \
-	src/application \
-	src/application/dataFiles \
-	src/renderer \
-	src/renderer/primitives \
-	src/utilities \
-	src/utilities/math \
-	src/utilities/signals
+	src
 
 # Source files
 SRC = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.cpp))
-VERSION_FILE = src/application/gitHash.cpp
+VERSION_FILE = src/gitHash.cpp
 
 # Object files
 TEMP_OBJS_DEBUG = $(addprefix $(OBJDIR_DEBUG),$(SRC:.cpp=.o))

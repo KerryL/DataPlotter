@@ -7,7 +7,8 @@
 # DO NOT include the -I prefix to these paths - it will
 # be added automatically
 INCDIRS_TEMP = \
-	$(CURDIR)/src 
+	$(CURDIR)/src \
+	$(CURDIR)/../LibPlot2D/include
 
 INCDIRS = $(addprefix -I,$(INCDIRS_TEMP))
 
@@ -15,7 +16,7 @@ INCDIRS = $(addprefix -I,$(INCDIRS_TEMP))
 # DO NOT include the -L prefix to these paths - it will
 # be added automatically
 LIBDIRS_TEMP = \
-	
+	$(CURDIR)/../LibPlot2D/lib
 
 LIBDIRS = $(addprefix -L,$(LIBDIRS_TEMP))
 
@@ -23,11 +24,15 @@ LIBDIRS = $(addprefix -L,$(LIBDIRS_TEMP))
 # DO NOT include the -l prefix to these libraries - it
 # will be added automatically
 LIBS_TEMP = \
-	
+	Plot2d
+
+LIBS_TEMP_D = \
+	Plot2d_d
 
 LIBS = $(addprefix -l,$(LIBS_TEMP))
+LIBS_D = $(addprefix -l,$(LIBS_TEMP_D))
 
-# Static libraries to be build before the executable
+# Static libraries to be built before the executable
 # MUST be listed in order of dependence (i.e. first
 # library must not be needed by other libraries and
 # it must need information contained in the following
@@ -42,12 +47,13 @@ AR = ar rcs
 RANLIB = ranlib
 
 # Compiler flags
-CFLAGS = -Wall -Wextra $(INCDIRS) `pkg-config --cflags glew, freetype2` -DwxUSE_GUI=1 -D_DATAPLOTTER_64_BIT_ -Wno-unused-local-typedefs -std=c++0x
+CFLAGS = -Wall -Wextra $(INCDIRS) `pkg-config --cflags freetype2` -DwxUSE_GUI=1 -Wno-unused-local-typedefs -std=c++14
 CFLAGS_RELEASE = $(CFLAGS) -O2 `wx-config --version=3.1 --debug=no --cppflags`
 CFLAGS_DEBUG = $(CFLAGS) -g `wx-config --version=3.1 --debug=yes --cppflags`
 
 # Linker flags
 LDFLAGS = $(LIBDIRS) $(LIBS) `pkg-config --libs gl,glew,freetype2`
+LDFLAGS_D = $(LIBDIRS) $(LIBS_D) `pkg-config --libs gl,glew,freetype2`
 LDFLAGS_DEBUG = $(LDFLAGS) `wx-config --version=3.1 --debug=yes --libs all`
 LDFLAGS_RELEASE = $(LDFLAGS) `wx-config --version=3.1 --debug=no --libs all`
 
