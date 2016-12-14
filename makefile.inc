@@ -27,7 +27,6 @@ LIBS_TEMP = \
 	
 
 LIBS = $(addprefix -l,$(LIBS_TEMP))
-LIBS_D = $(addprefix -l,$(LIBS_TEMP_D))
 
 # Static libraries to be built before the executable
 # MUST be listed in order of dependence (i.e. first
@@ -44,15 +43,14 @@ AR = ar rcs
 RANLIB = ranlib
 
 # Compiler flags
-CFLAGS = -Wall -Wextra $(INCDIRS) `pkg-config --cflags lp2d` -DwxUSE_GUI=1 -Wno-unused-local-typedefs -std=c++14
-CFLAGS_RELEASE = $(CFLAGS) -O2 `wx-config --version=3.1 --debug=no --cppflags`
-CFLAGS_DEBUG = $(CFLAGS) -g `wx-config --version=3.1 --debug=yes --cppflags`
+CFLAGS = -Wall -Wextra $(INCDIRS) -DwxUSE_GUI=1 -Wno-unused-local-typedefs
+CFLAGS_RELEASE = $(CFLAGS) -O2 `pkg-config --cflags lp2d`
+CFLAGS_DEBUG = $(CFLAGS) -g `pkg-config --cflags lp2d_d`
 
 # Linker flags
-LDFLAGS = $(LIBDIRS) $(LIBS) `pkg-config --libs lp2d`
-LDFLAGS_D = $(LIBDIRS) $(LIBS_D) `pkg-config --libs lp2d`
-LDFLAGS_DEBUG = $(LDFLAGS) `wx-config --version=3.1 --debug=yes --libs all`
-LDFLAGS_RELEASE = $(LDFLAGS) `wx-config --version=3.1 --debug=no --libs all`
+LDFLAGS = $(LIBDIRS) $(LIBS)
+LDFLAGS_RELEASE = $(LDFLAGS) `pkg-config --libs lp2d`
+LDFLAGS_DEBUG = $(LDFLAGS) `pkg-config --libs lp2d_d`
 
 # Object file output directory
 OBJDIR = $(CURDIR)/.obj/
