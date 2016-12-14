@@ -7,8 +7,7 @@
 # DO NOT include the -I prefix to these paths - it will
 # be added automatically
 INCDIRS_TEMP = \
-	$(CURDIR)/src \
-	$(CURDIR)/../LibPlot2D/include
+	$(CURDIR)/src
 
 INCDIRS = $(addprefix -I,$(INCDIRS_TEMP))
 
@@ -16,7 +15,7 @@ INCDIRS = $(addprefix -I,$(INCDIRS_TEMP))
 # DO NOT include the -L prefix to these paths - it will
 # be added automatically
 LIBDIRS_TEMP = \
-	$(CURDIR)/../LibPlot2D/lib
+	
 
 LIBDIRS = $(addprefix -L,$(LIBDIRS_TEMP))
 
