@@ -85,6 +85,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxEmptyString,
 	CreateControls();
 	SetProperties();
 
+	plotInterface.RegisterAllBuiltInFileTypes();
+
 	if (!LibPlot2D::CustomFileFormat::CustomDefinitionsExist())
 		wxMessageBox(_T("Warning:  Custom file definitions not found!"),
 		_T("Custom File Formats"), wxICON_WARNING, this);
