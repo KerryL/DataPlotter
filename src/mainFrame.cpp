@@ -258,11 +258,11 @@ void MainFrame::SetProperties()
 
 	const int entryCount(5);
 	wxAcceleratorEntry entries[entryCount];
-	entries[0].Set(wxACCEL_CTRL, (int)'c', idCopyEvent);
-	entries[1].Set(wxACCEL_CTRL, (int)'v', idPasteEvent);
-	entries[2].Set(wxACCEL_CTRL, (int)'o', idButtonOpen);
-	entries[3].Set(wxACCEL_CTRL, (int)'a', idButtonAutoScale);
-	entries[4].Set(wxACCEL_CTRL, (int)'r', idButtonRemoveCurve);
+	entries[0].Set(wxACCEL_CTRL, static_cast<int>('c'), idCopyEvent);
+	entries[1].Set(wxACCEL_CTRL, static_cast<int>('v'), idPasteEvent);
+	entries[2].Set(wxACCEL_CTRL, static_cast<int>('o'), idButtonOpen);
+	entries[3].Set(wxACCEL_CTRL, static_cast<int>('a'), idButtonAutoScale);
+	entries[4].Set(wxACCEL_CTRL, static_cast<int>('r'), idButtonRemoveCurve);
 	wxAcceleratorTable accel(entryCount, entries);
 	SetAcceleratorTable(accel);
 }
@@ -288,8 +288,8 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_BUTTON(idButtonAutoScale,		MainFrame::ButtonAutoScaleClickedEvent)
 	EVT_BUTTON(idButtonRemoveCurve,		MainFrame::ButtonRemoveCurveClickedEvent)
 	EVT_BUTTON(idButtonReloadData,		MainFrame::ButtonReloadDataClickedEvent)
-	EVT_BUTTON(idCopyEvent,				MainFrame::CopyEvent)
-	EVT_BUTTON(idPasteEvent,			MainFrame::PasteEvent)
+	EVT_MENU(idCopyEvent,				MainFrame::CopyEvent)
+	EVT_MENU(idPasteEvent,				MainFrame::PasteEvent)
 END_EVENT_TABLE();
 
 //==========================================================================
