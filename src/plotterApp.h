@@ -38,7 +38,7 @@ public:
 
 private:
 	// The main class for the application - this object is the parent for all other objects
-	MainFrame *mainFrame;
+	MainFrame *mainFrame = nullptr;
 };
 
 // Declare the application object (have wxWidgets create the wxGetApp() function)
