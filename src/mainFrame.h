@@ -54,6 +54,7 @@ private:
 
 	LibPlot2D::PlotRenderer* CreatePlotArea(wxWindow *parent);
 	wxBoxSizer* CreateButtons(wxWindow *parent);
+	wxWindow* CreateVersionText(wxWindow *parent);
 
 	// Controls
 	LibPlot2D::PlotRenderer *plotArea;

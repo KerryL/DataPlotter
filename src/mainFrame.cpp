@@ -30,6 +30,7 @@
 #include <lp2d/renderer/plotRenderer.h>
 #include <lp2d/utilities/guiUtilities.h>
 #include <lp2d/parser/customFileFormat.h>
+#include <lp2d/libPlot2D.h>
 
 // *nix Icons
 #ifdef __WXGTK__
@@ -215,10 +216,41 @@ wxBoxSizer* MainFrame::CreateButtons(wxWindow *parent)
 	topSizer->Add(new wxButton(parent, idButtonReloadData, _T("Reload &Data")), 1, wxGROW);
 
 	buttonSizer->AddStretchSpacer(1);
-	buttonSizer->Add(new wxStaticText(parent, wxID_ANY, DataPlotterApp::versionString
-		+ _T(" (") + DataPlotterApp::gitHash + _T(")")));
+	buttonSizer->Add(CreateVersionText(parent));
 
 	return buttonSizer;
+}
+
+//==========================================================================
+// Class:			MainFrame
+// Function:		CreateVersionText
+//
+// Description:		Builds a static text control containing version
+//					information.
+//
+// Input Arguments:
+//		parent	= wxWindow*
+//
+// Output Arguments:
+//		None
+//
+// Return Value:
+//		wxWindow*
+//
+//==========================================================================
+wxWindow* MainFrame::CreateVersionText(wxWindow *parent)
+{
+	wxString dataPlotterVersionString(DataPlotterApp::versionString
+		+ _T(" (") + DataPlotterApp::gitHash + _T(")"));
+	wxString lp2dVersionString(LibPlot2D::versionString
+		+ _T(" (") + LibPlot2D::gitHash + _T(")"));
+
+	wxStaticText* versionInfo(new wxStaticText(parent, wxID_ANY,
+		dataPlotterVersionString));
+	versionInfo->SetToolTip(_T("DataPlotter ") + dataPlotterVersionString
+		+ _T("\nLibPlot2D ") + lp2dVersionString);
+
+	return versionInfo;
 }
 
 //==========================================================================
