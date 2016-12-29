@@ -11,6 +11,13 @@ INCDIRS_TEMP = \
 
 INCDIRS = $(addprefix -I,$(INCDIRS_TEMP))
 
+# For 3rd party files - will be included as system files so warnings
+# are ignored.  These macros must be defined in your bashrc file.
+LIB_INCDIRS_TEMP = \
+	$(EIGEN)
+
+LIB_INCDIRS = $(addprefix -isystem,$(LIB_INCDIRS_TEMP))
+
 # Library directories that are not already on the path
 # DO NOT include the -L prefix to these paths - it will
 # be added automatically
@@ -42,7 +49,7 @@ AR = ar rcs
 RANLIB = ranlib
 
 # Compiler flags
-CFLAGS = -Wall -Wextra $(INCDIRS) -DwxUSE_GUI=1 -Wno-unused-local-typedefs
+CFLAGS = -Wall -Wextra $(LIB_INCDIRS) $(INCDIRS) -DwxUSE_GUI=1 -Wno-unused-local-typedefs
 CFLAGS_RELEASE = $(CFLAGS) -O2 `pkg-config --cflags lp2d`
 CFLAGS_DEBUG = $(CFLAGS) -g `pkg-config --cflags lp2d_d`
 
