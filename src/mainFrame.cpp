@@ -182,7 +182,7 @@ LibPlot2D::PlotRenderer* MainFrame::CreatePlotArea(wxWindow *parent)
 
 	plotArea->SetMinSize(wxSize(650, 320));
 	plotArea->SetMajorGridOn();
-	plotArea->SetCurveQuality(LibPlot2D::PlotRenderer::QualityHighWrite);
+	plotArea->SetCurveQuality(LibPlot2D::PlotRenderer::CurveQuality::HighWrite);
 
 	return plotArea;
 }
