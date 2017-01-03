@@ -61,7 +61,7 @@
 //		None
 //
 //==========================================================================
-const unsigned long long MainFrame::highQualityCurvePointLimit(10000);
+const unsigned long long MainFrame::mHighQualityCurvePointLimit(10000);
 
 //==========================================================================
 // Class:			MainFrame
@@ -81,12 +81,12 @@ const unsigned long long MainFrame::highQualityCurvePointLimit(10000);
 //
 //==========================================================================
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxEmptyString,
-	wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE), plotInterface(this)
+	wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE), mPlotInterface(this)
 {
 	CreateControls();
 	SetProperties();
 
-	plotInterface.RegisterAllBuiltInFileTypes();
+	mPlotInterface.RegisterAllBuiltInFileTypes();
 
 	if (!LibPlot2D::CustomFileFormat::CustomDefinitionsExist())
 		wxMessageBox(_T("Warning:  Custom file definitions not found!"),
@@ -144,11 +144,11 @@ void MainFrame::CreateControls()
 	wxPanel *lowerPanel = new wxPanel(splitter);
 	wxBoxSizer *lowerSizer = new wxBoxSizer(wxHORIZONTAL);
 	lowerSizer->Add(CreateButtons(lowerPanel), 0, wxGROW | wxALL, 5);
-	lowerSizer->Add(new LibPlot2D::PlotListGrid(plotInterface, lowerPanel), 1, wxGROW | wxALL, 5);
+	lowerSizer->Add(new LibPlot2D::PlotListGrid(mPlotInterface, lowerPanel), 1, wxGROW | wxALL, 5);
 	lowerPanel->SetSizer(lowerSizer);
 
 	CreatePlotArea(splitter);
-	splitter->SplitHorizontally(plotArea, lowerPanel, plotArea->GetSize().GetHeight());
+	splitter->SplitHorizontally(mPlotArea, lowerPanel, mPlotArea->GetSize().GetHeight());
 	splitter->SetSize(GetClientSize());
 	splitter->SetSashGravity(1.0);
 	splitter->SetMinimumPaneSize(150);
@@ -178,13 +178,13 @@ LibPlot2D::PlotRenderer* MainFrame::CreatePlotArea(wxWindow *parent)
 	wxGLAttributes displayAttributes;
 	displayAttributes.PlatformDefaults().RGBA().DoubleBuffer().SampleBuffers(1).Samplers(4).Stencil(1).EndList();
 	assert(wxGLCanvas::IsDisplaySupported(displayAttributes));
-	plotArea = new LibPlot2D::PlotRenderer(plotInterface, *parent, wxID_ANY, displayAttributes);
+	mPlotArea = new LibPlot2D::PlotRenderer(mPlotInterface, *parent, wxID_ANY, displayAttributes);
 
-	plotArea->SetMinSize(wxSize(650, 320));
-	plotArea->SetMajorGridOn();
-	plotArea->SetCurveQuality(LibPlot2D::PlotRenderer::CurveQuality::HighWrite);
+	mPlotArea->SetMinSize(wxSize(650, 320));
+	mPlotArea->SetMajorGridOn();
+	mPlotArea->SetCurveQuality(LibPlot2D::PlotRenderer::CurveQuality::HighWrite);
 
-	return plotArea;
+	return mPlotArea;
 }
 
 //==========================================================================
@@ -274,7 +274,7 @@ void MainFrame::SetProperties()
 {
 	SetTitle(DataPlotterApp::dataPlotterTitle);
 	SetName(DataPlotterApp::dataPlotterName);
-	plotInterface.SetApplicationTitle(DataPlotterApp::dataPlotterTitle);
+	mPlotInterface.SetApplicationTitle(DataPlotterApp::dataPlotterTitle);
 	Center();
 
 #ifdef __WXMSW__
@@ -355,7 +355,7 @@ void MainFrame::ButtonOpenClickedEvent(wxCommandEvent& WXUNUSED(event))
 	if (fileList.GetCount() == 0)
 		return;
 
-	plotInterface.LoadFiles(fileList);
+	mPlotInterface.LoadFiles(fileList);
 }
 
 //==========================================================================
@@ -376,7 +376,7 @@ void MainFrame::ButtonOpenClickedEvent(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::ButtonAutoScaleClickedEvent(wxCommandEvent& WXUNUSED(event))
 {
-	plotArea->AutoScale();
+	mPlotArea->AutoScale();
 }
 
 //==========================================================================
@@ -397,7 +397,7 @@ void MainFrame::ButtonAutoScaleClickedEvent(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::ButtonRemoveCurveClickedEvent(wxCommandEvent& WXUNUSED(event))
 {
-	plotInterface.RemoveSelectedCurves();
+	mPlotInterface.RemoveSelectedCurves();
 }
 
 //==========================================================================
@@ -418,7 +418,7 @@ void MainFrame::ButtonRemoveCurveClickedEvent(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::ButtonReloadDataClickedEvent(wxCommandEvent& WXUNUSED(event))
 {
-	plotInterface.ReloadData();
+	mPlotInterface.ReloadData();
 }
 
 //==========================================================================
@@ -439,7 +439,7 @@ void MainFrame::ButtonReloadDataClickedEvent(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::CopyEvent(wxCommandEvent& WXUNUSED(event))
 {
-	plotInterface.Copy();
+	mPlotInterface.Copy();
 }
 
 //==========================================================================
@@ -460,7 +460,7 @@ void MainFrame::CopyEvent(wxCommandEvent& WXUNUSED(event))
 //==========================================================================
 void MainFrame::PasteEvent(wxCommandEvent& WXUNUSED(event))
 {
-	plotInterface.Paste();
+	mPlotInterface.Paste();
 }
 
 //==========================================================================

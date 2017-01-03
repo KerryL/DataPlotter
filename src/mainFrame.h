@@ -44,9 +44,9 @@ public:
 	~MainFrame() = default;
 
 private:
-	static const unsigned long long highQualityCurvePointLimit;
+	static const unsigned long long mHighQualityCurvePointLimit;
 
-	LibPlot2D::GuiInterface plotInterface;
+	LibPlot2D::GuiInterface mPlotInterface;
 
 	// Functions that do some of the frame initialization and control positioning
 	void CreateControls();
@@ -57,7 +57,7 @@ private:
 	wxWindow* CreateVersionText(wxWindow *parent);
 
 	// Controls
-	LibPlot2D::PlotRenderer *plotArea;
+	LibPlot2D::PlotRenderer *mPlotArea;
 
 	// The event IDs
 	enum MainFrameEventID
