@@ -344,7 +344,7 @@ END_EVENT_TABLE();
 void MainFrame::ButtonOpenClickedEvent(wxCommandEvent& WXUNUSED(event))
 {
 	// Set up the wildcard specifications (done here for readability)
-	wxString wildcard("All files (*.*)|*.*");
+	wxString wildcard("All files (*)|*");
 	wildcard.append("|Comma Separated (*.csv)|*.csv");
 	wildcard.append("|Tab Delimited (*.txt)|*.txt");
 
