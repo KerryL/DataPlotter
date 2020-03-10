@@ -2,23 +2,27 @@
 <!--Created by K. Loux, 7/16/2012-->
 <!--This file is CaSe SeNsItIvE - Use only UPPER CASE LETTERS-->
 <!--
-	<FORMAT			used to define a custom file format
-		NAME:			name identifying format; used in error messages
-					and internally - must be unique for each FORMAT
-		EXTENSION:		identifies valid file extensions for this format;
-					use "*" for all; separate multiple extensions
-					with semicolons, e.g. "txt;csv"
-		DELIMITER:		[optional] specifies the delimiter to use when
-					parsing the file; if omitted, the default internal
-					list of delimiters is tried
-		TIME_UNITS:	[optional] specifies the time units using, e.g.
-					"msec" or "minutes"; if omitted, processed as a
-					normal unknown format (search for recognizable
-					units in file or continue with unknown)
+	<FORMAT				used to define a custom file format
+		NAME:				name identifying format; used in error messages
+						and internally - must be unique for each FORMAT
+		EXTENSION:			identifies valid file extensions for this format;
+						use "*" for all; separate multiple extensions
+						with semicolons, e.g. "txt;csv"
+		DELIMITER:			[optional] specifies the delimiter to use when
+						parsing the file; if omitted, the default internal
+							list of delimiters is tried
+		TIME_UNITS:		[optional] specifies the time units using, e.g.
+							"msec" or "minutes"; if omitted, processed as a
+							normal unknown format (search for recognizable
+							units in file or continue with unknown)
+		TIME_COLUMN:	used to indicate that time data is not in the first
+							column.
+		START_ROW:		used when the automatic start detection routine may
+							not correctly identify the header row.
 	/>
 	
 	<IDENTIFIER		used to specify criteria for identifying custom formats
-		LOCATION:	one of:	BOF	= begginning of file
+		LOCATION:	one of:	BOF	= beginning of file
 						BOL#	= beginning of line # (matches the
 						beginning of specified line (0-based); if # is
 						omitted the beginning of all lines will be
@@ -26,18 +30,18 @@
 		MATCH_CASE:	[optional] 0 for false, 1 for true; true if omitted
 	>Text to match</IDENTIFIER>
 	
-	<CHANNEL		used to identify types of data that may be present
-				in the file
-		CODE:		text to match (case sensitive) to portion of column
-				headings (matched text is removed and replaced with
-				NAME)
+	<CHANNEL	used to identify types of data that may be present
+					in the file
+		CODE:	text to match (case sensitive) to portion of column
+					headings (matched text is removed and replaced with
+					NAME)
 		COLUMN:	[may be used in place of code] index of column for
 				the channel; time column is zero (do not specify column=0)
 		NAME:		text to display in curve list
-		SCALE:	[optional] to be multiplied agains data when it is
-				imported; 1 if omitted
-		UNITS:	[optional] text to be shown in square brakets
-				following name in curve list
+		SCALE:	[optional] to be multiplied against data when it is
+					imported; 1 if omitted
+		UNITS:	[optional] text to be shown in square brackets
+					following name in curve list
 	/>
 -->
 <CUSTOM_FORMATS VERSION="1">
@@ -52,8 +56,10 @@
 		<CHANNEL CODE=".r79[0]" NAME="Torque setpoint total, Unsmoothed" SCALE="1" UNITS="Nm" />
 		<CHANNEL CODE=".r80" NAME="Torque actual value" SCALE="1" UNITS="Nm" />
 		-->
+		<CHANNEL CODE=".r60" NAME="Speed Setpoint before the setpoint filter" SCALE="1" UNITS="rpm" />
 		<CHANNEL CODE=".r62" NAME="Speed Setpoint" SCALE="1" UNITS="rpm" />
-		<CHANNEL CODE=".r63" NAME="Speed Actual" SCALE="1" UNITS="rpm" />
+		<CHANNEL CODE=".r63" NAME="Speed Actual, smoothed" SCALE="1" UNITS="rpm" />
+		<CHANNEL CODE=".r68" NAME="Absolute current actual value" SCALE="1" UNITS="A" />
 		<CHANNEL CODE=".r70" NAME="Actual DC link voltage" SCALE="1" UNITS="V" />
 		<CHANNEL CODE=".r77" NAME="Iq Current Setpoint" SCALE="1" UNITS="Arms" />
 		<CHANNEL CODE=".r78[0]" NAME="Iq Current Actual" SCALE="1" UNITS="Arms" />
@@ -65,6 +71,10 @@
 		-->
 		<CHANNEL CODE=".r2521[0]" NAME="LR position actual value, Closed-loop position control" SCALE="1" UNITS="LU" />
 		<CHANNEL CODE=".r2665" NAME="EPOS: Position Setpoint" SCALE="1" UNITS="LU" />
+		<CHANNEL CODE=".r52266" NAME="Field current actual value" SCALE="1" UNITS="%" />
+		<CHANNEL CODE=".r50038" NAME="Armature voltage actual value" SCALE="1" UNITS="V" />
+		<CHANNEL CODE=".r52148" NAME="Speed controller torque setpoint" SCALE="1" UNITS="%" />
+		<CHANNEL CODE=".r52117" NAME="Armature current actual value" SCALE="1" UNITS="%" />
 	</FORMAT>
 	<FORMAT NAME="Parker Chart" EXTENSION="csv" DELIMITER="," TIME_UNITS="msec" TIME_FORMAT="hh:mm:ss:xxx" ASYNC="TRUE" END_IDENTIFIER="DATA BLOCK END">
 		<IDENTIFIER LOCATION="BOF">DSE STREAMER DATA</IDENTIFIER>
@@ -84,5 +94,8 @@
 		<CHANNEL NAME="Torque Demand" CODE="2516" SCALE="1" UNITS="%" DISCARD_CODE="TRUE"/>
 		<CHANNEL NAME="Total Speed Demand" CODE="2514" SCALE="1" UNITS="%" DISCARD_CODE="TRUE"/>
 		<CHANNEL NAME="Unfiltered Torque Feedback" CODE="5249" SCALE="1" UNITS="%" DISCARD_CODE="TRUE"/>
+	</FORMAT>
+	<FORMAT NAME="Allen Bradley PLC" EXTENSION="csv" DELIMITER="," TIME_UNITS="sec" TIME_FORMAT="hh:mm:ss;xxx" TIME_COLUMN="2" START_ROW="12">
+		<IDENTIFIER LOCATION="BOL">Header:</IDENTIFIER>
 	</FORMAT>
 </CUSTOM_FORMATS>
