@@ -48,10 +48,14 @@ CC = g++
 AR = ar rcs
 RANLIB = ranlib
 
+# wxWidgets include paths as system paths
+LP2D_CFLAGS:=$(shell pkg-config --cflags lp2d)
+LP2D_CFLAGS_D:=$(shell pkg-config --cflags lp2d_d)
+
 # Compiler flags
 CFLAGS = -Wall -Wextra $(LIB_INCDIRS) $(INCDIRS) -DwxUSE_GUI=1 -Wno-unused-local-typedefs
-CFLAGS_RELEASE = $(CFLAGS) -O2 `pkg-config --cflags lp2d`
-CFLAGS_DEBUG = $(CFLAGS) -g `pkg-config --cflags lp2d_d`
+CFLAGS_RELEASE = $(CFLAGS) -O2 $(subst -I,-isystem,$(LP2D_CFLAGS))
+CFLAGS_DEBUG = $(CFLAGS) -g (subst -I,-isystem,$(LP2D_CFLAGS_D))
 
 # Linker flags
 LDFLAGS = $(LIBDIRS) $(LIBS)
