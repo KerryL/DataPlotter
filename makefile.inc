@@ -55,7 +55,7 @@ LP2D_CFLAGS_D:=$(shell pkg-config --cflags lp2d_d)
 # Compiler flags
 CFLAGS = -Wall -Wextra $(LIB_INCDIRS) $(INCDIRS) -DwxUSE_GUI=1 -Wno-unused-local-typedefs
 CFLAGS_RELEASE = $(CFLAGS) -O2 $(subst -I,-isystem,$(LP2D_CFLAGS))
-CFLAGS_DEBUG = $(CFLAGS) -g (subst -I,-isystem,$(LP2D_CFLAGS_D))
+CFLAGS_DEBUG = $(CFLAGS) -g $(subst -I,-isystem,$(LP2D_CFLAGS_D))
 
 # Linker flags
 LDFLAGS = $(LIBDIRS) $(LIBS)
