@@ -92,7 +92,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, wxEmptyString,
 		wxMessageBox(_T("Warning:  Custom file definitions not found!"),
 		_T("Custom File Formats"), wxICON_WARNING, this);
 
-	srand(time(NULL));
+	srand(time(nullptr));
 
 	//TestSignalOperations();
 }
