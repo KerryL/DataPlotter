@@ -81,6 +81,8 @@ private:
 	void CopyEvent(wxCommandEvent &event);
 	void PasteEvent(wxCommandEvent &event);
 
+	void OnClose(wxCloseEvent& event);
+
 	void SetTitleFromFileName(wxString pathAndFileName);
 
 	DECLARE_EVENT_TABLE();

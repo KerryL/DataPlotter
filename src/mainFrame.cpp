@@ -322,6 +322,7 @@ BEGIN_EVENT_TABLE(MainFrame, wxFrame)
 	EVT_BUTTON(idButtonReloadData,		MainFrame::ButtonReloadDataClickedEvent)
 	EVT_MENU(idCopyEvent,				MainFrame::CopyEvent)
 	EVT_MENU(idPasteEvent,				MainFrame::PasteEvent)
+	EVT_CLOSE(							MainFrame::OnClose)
 END_EVENT_TABLE();
 
 //==========================================================================
@@ -484,6 +485,30 @@ void MainFrame::SetTitleFromFileName(wxString pathAndFileName)
 	wxString fileName(LibPlot2D::GuiUtilities::ExtractFileNameFromPath(pathAndFileName));
 	unsigned int end(fileName.find_last_of(_T(".")));
 	SetTitle(fileName.Mid(0, end) + _T(" - ") + DataPlotterApp::dataPlotterTitle);
+}
+
+//==========================================================================
+// Class:			MainFrame
+// Function:		OnClose
+//
+// Description:		Close event handler.
+//
+// Input Arguments:
+//		event	= wxCloseEvent&
+//
+// Output Arguments:
+//		None
+//
+// Return Value:
+//		None
+//
+//==========================================================================
+void MainFrame::OnClose(wxCloseEvent& event)
+{
+	if (!IsActive())
+		wxQueueEvent(this, new wxActivateEvent());// fix for application not closing if closed from taskbar when not focused; see https://forums.wxwidgets.org/viewtopic.php?t=43498
+
+	event.Skip();
 }
 
 //==========================================================================
